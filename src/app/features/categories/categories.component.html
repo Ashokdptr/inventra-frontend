@@ -1,0 +1,174 @@
+<div class="cat-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>Categories</h1>
+      <p class="sub">Manage main categories and subcategories</p>
+    </div>
+    <button class="btn-primary" (click)="openCreateMain()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Main Category
+    </button>
+  </div>
+
+  <!-- Summary chips -->
+  <div class="stat-row">
+    <div class="stat-chip">
+      <span class="chip-icon">🗂️</span>
+      <strong>{{ totalMain() }}</strong>
+      <span>Main Categories</span>
+    </div>
+    <div class="stat-chip">
+      <span class="chip-icon">📁</span>
+      <strong>{{ totalSub() }}</strong>
+      <span>Subcategories</span>
+    </div>
+    <div class="stat-chip">
+      <span class="chip-icon">📦</span>
+      <strong>{{ totalMain() + totalSub() }}</strong>
+      <span>Total</span>
+    </div>
+  </div>
+
+  @if (success()) {
+    <div class="alert-success">✓ {{ success() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="spinner-wrap"><div class="spinner"></div></div>
+  } @else {
+
+    <!-- Category Tree -->
+    <div class="tree-wrap">
+      @for (main of categories(); track main.id) {
+        <!-- Main category row -->
+        <div class="main-row">
+          <button class="expand-btn" (click)="toggle(main.id)" [title]="isExpanded(main.id) ? 'Collapse' : 'Expand'">
+            @if ((main.subcategories?.length ?? 0) > 0) {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"
+                [class.rotated]="isExpanded(main.id)">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            } @else {
+              <span class="dot"></span>
+            }
+          </button>
+          <div class="main-icon">{{ main.name[0].toUpperCase() }}</div>
+          <div class="cat-info">
+            <strong>{{ main.name }}</strong>
+            <span class="cat-desc">{{ main.description || 'No description' }}</span>
+          </div>
+          <div class="cat-meta">
+            <span class="sub-count">{{ main.subcategories?.length ?? 0 }} subcategories</span>
+          </div>
+          <div class="cat-actions">
+            <button class="btn-add-sub" (click)="openCreateSub(main.id)" title="Add subcategory">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Sub
+            </button>
+            <button class="btn-icon edit" (click)="openEdit(main)" title="Edit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="btn-icon del" (click)="delete(main.id, main.name)" title="Delete">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Subcategory rows (collapsible) -->
+        @if (isExpanded(main.id) && (main.subcategories?.length ?? 0) > 0) {
+          @for (sub of main.subcategories; track sub.id) {
+            <div class="sub-row">
+              <span class="tree-line"></span>
+              <div class="sub-icon">{{ sub.name[0].toUpperCase() }}</div>
+              <div class="cat-info">
+                <strong>{{ sub.name }}</strong>
+                <span class="cat-desc">{{ sub.description || 'No description' }}</span>
+              </div>
+              <div class="cat-meta">
+                <span class="parent-tag">under {{ main.name }}</span>
+              </div>
+              <div class="cat-actions">
+                <button class="btn-icon edit" (click)="openEdit({id: sub.id, name: sub.name, description: sub.description}, main.id)" title="Edit">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button class="btn-icon del" (click)="delete(sub.id, sub.name)" title="Delete">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+                </button>
+              </div>
+            </div>
+          }
+        }
+      }
+
+      @if (categories().length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">🗂️</div>
+          <h3>No categories yet</h3>
+          <p>Start by adding a main category like "Electronics" or "Office Supplies"</p>
+          <button class="btn-primary" (click)="openCreateMain()">Add First Category</button>
+        </div>
+      }
+    </div>
+  }
+
+</div>
+
+<!-- Create / Edit Modal -->
+@if (showModal()) {
+  <div class="modal-overlay" (click)="close()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-head">
+        <h2>
+          @if (editId()) {
+            Edit Category
+          } @else if (isAddingSub()) {
+            Add Subcategory
+            <span class="modal-parent-tag">under {{ parentNameFor(form.parentId!) }}</span>
+          } @else {
+            Add Main Category
+          }
+        </h2>
+        <button class="close-x" (click)="close()">✕</button>
+      </div>
+      <div class="modal-body">
+
+        @if (!editId() && !isAddingSub()) {
+          <div class="modal-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Main categories are top-level groups (e.g. Electronics, Office Supplies).
+            You can add subcategories inside them.
+          </div>
+        }
+
+        @if (isAddingSub() && !editId()) {
+          <div class="modal-hint sub-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg>
+            Adding subcategory under <strong>{{ parentNameFor(form.parentId!) }}</strong>.
+            Products will be linked to subcategories.
+          </div>
+        }
+
+        @if (error()) { <div class="modal-error">{{ error() }}</div> }
+
+        <label class="field-label">
+          {{ isAddingSub() || (editId() && form.parentId !== undefined) ? 'Subcategory' : 'Category' }} Name *
+        </label>
+        <input class="field-input" type="text" [(ngModel)]="form.name"
+          [placeholder]="isAddingSub() ? 'e.g. Laptops & Ultrabooks' : 'e.g. Electronics'" autofocus />
+
+        <label class="field-label">Description</label>
+        <textarea class="field-input field-textarea" [(ngModel)]="form.description"
+          [placeholder]="isAddingSub() ? 'Describe this subcategory...' : 'Describe this category...'" rows="2"></textarea>
+
+        <div class="modal-footer">
+          <button class="btn-cancel" (click)="close()">Cancel</button>
+          <button class="btn-save" (click)="save()">
+            {{ editId() ? 'Update' : 'Create' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

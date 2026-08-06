@@ -1,0 +1,214 @@
+<div class="login-root">
+
+  <!-- ── Animated left panel ── -->
+  <div class="left-panel">
+
+    <!-- Floating particles -->
+    <div class="particles">
+      @for (p of particles; track p.id) {
+        <div class="particle" [style.left.%]="p.x" [style.top.%]="p.y"
+             [style.width.px]="p.size" [style.height.px]="p.size"
+             [style.animation-delay.s]="p.delay" [style.animation-duration.s]="p.dur"></div>
+      }
+    </div>
+
+    <!-- Grid lines -->
+    <div class="grid-overlay"></div>
+
+    <!-- Brand -->
+    <div class="lp-brand">
+      <div class="lp-logo">
+        <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="white" stroke-width="2" fill="rgba(255,255,255,.2)"/>
+        </svg>
+      </div>
+      <div>
+        <div class="lp-name">Inventra</div>
+        <div class="lp-tagline">Intelligent IMS</div>
+      </div>
+    </div>
+
+    <!-- Hero text -->
+    <div class="lp-hero">
+      <h1 class="lp-h1">
+        Smart Inventory<br>
+        <span class="lp-accent">Management</span><br>
+        Redefined.
+      </h1>
+      <p class="lp-sub">Real-time tracking, AI insights, and seamless supplier collaboration — all in one place.</p>
+    </div>
+
+    <!-- Feature cards -->
+    <div class="lp-features">
+      @for (f of features; track f.title; let i = $index) {
+        <div class="lp-feat" [style.animation-delay.ms]="i * 120 + 400">
+          <div class="lp-feat-icon" [style.background]="f.color">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="16" height="16" [innerHTML]="trustIcon(f.icon)"></svg>
+          </div>
+          <div>
+            <div class="lp-feat-title">{{ f.title }}</div>
+            <div class="lp-feat-desc">{{ f.desc }}</div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Stats row -->
+    <div class="lp-stats">
+      @for (s of stats; track s.label) {
+        <div class="lp-stat">
+          <div class="lp-stat-val">{{ s.val }}</div>
+          <div class="lp-stat-lbl">{{ s.label }}</div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- ── Right panel: login form ── -->
+  <div class="right-panel">
+    <div class="form-wrap">
+
+      <!-- Header -->
+      <div class="form-header">
+        <h2>Welcome back</h2>
+        <p>Sign in to your Inventra workspace</p>
+      </div>
+
+      <!-- Mode tabs -->
+      <div class="mode-tabs">
+        <button type="button" [class.active]="loginMode() === 'password'" (click)="switchMode('password')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Password
+        </button>
+        <button type="button" [class.active]="loginMode() === 'otp'" (click)="switchMode('otp')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          OTP Login
+        </button>
+      </div>
+
+      <!-- ── Password Login ── -->
+      @if (loginMode() === 'password') {
+        @if (error()) {
+          <div class="alert-error">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            {{ error() }}
+          </div>
+        }
+        <div class="f-group">
+          <label>Email Address</label>
+          <div class="f-input-wrap">
+            <svg class="f-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <input type="email" [(ngModel)]="email" placeholder="you@company.com" (keyup.enter)="login()" autocomplete="email" />
+          </div>
+        </div>
+        <div class="f-group">
+          <label>Password</label>
+          <div class="f-input-wrap">
+            <svg class="f-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input [type]="showPwd ? 'text' : 'password'" [(ngModel)]="password"
+                   placeholder="Min. 6 characters" (keyup.enter)="login()" autocomplete="current-password" />
+            <button class="eye-btn" type="button" (click)="showPwd = !showPwd">
+              @if (showPwd) {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              }
+            </button>
+          </div>
+          <button type="button" class="forgot-btn" (click)="openForgot()">Forgot password?</button>
+        </div>
+        <button class="submit-btn" [disabled]="loading()" (click)="login()">
+          @if (loading()) {
+            <span class="btn-spinner"></span> Signing in…
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Sign In
+          }
+        </button>
+      }
+
+      <!-- ── OTP Login ── -->
+      @if (loginMode() === 'otp') {
+        @if (otpError()) {
+          <div class="alert-error">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            {{ otpError() }}
+          </div>
+        }
+        @if (!otpSent()) {
+          <div class="otp-step-badge">Step 1 of 2 — Enter your email</div>
+          <div class="f-group">
+            <label>Email Address</label>
+            <div class="f-input-wrap">
+              <svg class="f-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <input type="email" [(ngModel)]="otpEmail" placeholder="you@company.com" (keyup.enter)="sendOtp()" />
+            </div>
+          </div>
+          <button class="submit-btn" [disabled]="otpLoading()" (click)="sendOtp()">
+            @if (otpLoading()) { <span class="btn-spinner"></span> Sending… }
+            @else { Send OTP to Email }
+          </button>
+          <p class="otp-note">A 6-digit code will be sent to your registered email. Valid for 10 minutes.</p>
+        } @else {
+          @if (otpSuccess()) {
+            <div class="alert-success">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+              {{ otpSuccess() }}
+            </div>
+          }
+          <div class="otp-step-badge">Step 2 of 2 — Enter the code sent to <strong>{{ otpEmail }}</strong></div>
+          <div class="f-group">
+            <label>6-Digit OTP</label>
+            <input class="otp-input" type="text" [(ngModel)]="otpCode"
+                   placeholder="● ● ● ● ● ●" maxlength="6"
+                   (keyup.enter)="verifyOtp()" />
+          </div>
+          <button class="submit-btn" [disabled]="otpVerifying()" (click)="verifyOtp()">
+            @if (otpVerifying()) { <span class="btn-spinner"></span> Verifying… }
+            @else {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><polyline points="20 6 9 17 4 12"/></svg>
+              Verify & Sign In
+            }
+          </button>
+          <button type="button" class="back-btn" (click)="resendOtp()">← Change email / Resend OTP</button>
+        }
+      }
+
+      <div class="divider"><span>or</span></div>
+      <div class="register-row">
+        New to Inventra?
+        <a routerLink="/auth/register">Create account</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── Forgot Password Modal ── -->
+@if (forgotMode()) {
+  <div class="modal-overlay" (click)="closeForgot()">
+    <div class="fp-modal" (click)="$event.stopPropagation()">
+      <div class="fp-modal-head">
+        <h3>Reset Password</h3>
+        <button (click)="closeForgot()">✕</button>
+      </div>
+      <div class="fp-modal-body">
+        <p>Enter your account email. We'll send a secure password reset link.</p>
+        @if (fpError())   { <div class="alert-error">{{ fpError() }}</div> }
+        @if (fpSuccess()) { <div class="alert-success">{{ fpSuccess() }}</div> }
+        @if (!fpSuccess()) {
+          <div class="f-group">
+            <label>Email Address</label>
+            <input type="email" [(ngModel)]="fpEmail" placeholder="you@company.com" (keyup.enter)="sendReset()" />
+          </div>
+          <button class="submit-btn" (click)="sendReset()" [disabled]="fpLoading()">
+            @if (fpLoading()) { <span class="btn-spinner"></span> Sending… }
+            @else { Send Reset Link }
+          </button>
+        } @else {
+          <button class="submit-btn" (click)="closeForgot()">Back to Login</button>
+        }
+      </div>
+    </div>
+  </div>
+}

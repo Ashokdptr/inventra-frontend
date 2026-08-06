@@ -1,0 +1,512 @@
+<div class="page-header">
+  <div class="page-title">
+    <h1>Purchase Orders</h1>
+    <p>Create and manage supplier purchase orders</p>
+  </div>
+  <div class="hd-actions">
+    @if (auth.isManager()) { <button class="btn-add" (click)="openCreate()">+ New Purchase Order</button> }
+  </div>
+</div>
+
+<!-- KPI Strip -->
+<div class="po-kpi-row">
+  <div class="po-kpi-card">
+    <div class="po-kpi-icon teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div>
+    <div>
+      <div class="po-kpi-label">Total Purchase Orders</div>
+      <div class="po-kpi-val">{{ orders().length }}</div>
+      <div class="po-kpi-sub">All time</div>
+    </div>
+  </div>
+  <div class="po-kpi-card">
+    <div class="po-kpi-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+    <div>
+      <div class="po-kpi-label">Pending Approval</div>
+      <div class="po-kpi-val warn">{{ pendingOrders.length }}</div>
+      <div class="po-kpi-sub">Awaiting action</div>
+    </div>
+  </div>
+  <div class="po-kpi-card">
+    <div class="po-kpi-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div>
+      <div class="po-kpi-label">Approved Orders</div>
+      <div class="po-kpi-val ok">{{ approvedCount }}</div>
+      <div class="po-kpi-sub">Ready for delivery</div>
+    </div>
+  </div>
+  <div class="po-kpi-card">
+    <div class="po-kpi-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+    <div>
+      <div class="po-kpi-label">Completed Orders</div>
+      <div class="po-kpi-val">{{ completedCount }}</div>
+      <div class="po-kpi-sub">Successfully received</div>
+    </div>
+  </div>
+  <div class="po-kpi-card">
+    <div class="po-kpi-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+    <div>
+      <div class="po-kpi-label">Total Order Value</div>
+      <div class="po-kpi-val">₹{{ formatCompactPO(totalOrderValue) }}</div>
+      <div class="po-kpi-sub">Cumulative value</div>
+    </div>
+  </div>
+</div>
+
+@if (isSupplier && pendingOrders.length > 0) {
+  <div class="pending-banner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    <span>You have <strong>{{ pendingOrders.length }}</strong> pending order{{ pendingOrders.length !== 1 ? 's' : '' }} awaiting your approval.</span>
+  </div>
+}
+@if (auth.isManager() && approvedOrders.length > 0) {
+  <div class="confirm-banner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+    <strong>{{ approvedOrders.length }}</strong> order{{ approvedOrders.length !== 1 ? 's' : '' }} shipped by supplier — confirm receipt to update inventory.
+  </div>
+}
+
+<!-- ── PO Analytics Charts ── -->
+@if (!isSupplier) {
+<div class="po-charts-row">
+
+  <!-- PO Trend Line Chart -->
+  <div class="po-chart-card wide">
+    <div class="poc-head"><h3>Purchase Orders Trend</h3><span class="poc-sub">This Week</span></div>
+    @if (poTrendPoints().length > 1) {
+      <div class="poc-wrap">
+        <svg viewBox="0 0 480 130" preserveAspectRatio="none" class="poc-svg">
+          <defs>
+            <linearGradient id="poGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#10b981" stop-opacity="0.25"/>
+              <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          @for (y of poGridY(); track y) {
+            <line x1="30" [attr.y1]="y" x2="475" [attr.y2]="y" stroke="var(--border-color)" stroke-width="0.5"/>
+          }
+          <path [attr.d]="poAreaPath()" fill="url(#poGrad)"/>
+          <path [attr.d]="poLinePath()" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+          @for (pt of poTrendPoints(); track pt.label) {
+            <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="4" fill="#10b981" stroke="white" stroke-width="2"/>
+          }
+        </svg>
+        <div class="poc-labels">
+          @for (pt of poTrendPoints(); track pt.label) {
+            <span>{{ pt.label }}</span>
+          }
+        </div>
+      </div>
+    } @else {
+      <div class="poc-empty">No purchase order data</div>
+    }
+  </div>
+
+  <!-- PO Value by Supplier -->
+  <div class="po-chart-card">
+    <div class="poc-head"><h3>Purchase Value by Supplier</h3><span class="poc-sub">This Month</span></div>
+    <div class="po-sup-bars">
+      @for (sup of poBySupplier(); track sup.name) {
+        <div class="po-sup-row">
+          <div class="po-sup-name" [title]="sup.name">{{ sup.name.length > 18 ? sup.name.slice(0,16)+'…' : sup.name }}</div>
+          <div class="po-bar-track"><div class="po-bar" [style.width.%]="sup.pct" [style.background]="sup.color"></div></div>
+          <strong class="po-bar-val">₹{{ formatCompactPO(sup.total) }}</strong>
+        </div>
+      } @empty {
+        <div class="poc-empty">No purchase data</div>
+      }
+    </div>
+  </div>
+
+  <!-- Order Status Distribution donut -->
+  <div class="po-chart-card narrow">
+    <div class="poc-head"><h3>Order Status Distribution</h3></div>
+    <div class="poc-donut-center">
+      <div class="poc-donut" [style.background]="statusDonut().gradient">
+        <div class="poc-hole">
+          <span class="poc-donut-num">{{ orders().length }}</span>
+          <span class="poc-donut-sm">Total Orders</span>
+        </div>
+      </div>
+    </div>
+    <div class="poc-legend">
+      @for (item of statusDistribution(); track item.label) {
+        <div class="poc-leg-row">
+          <span class="poc-dot" [style.background]="item.color"></span>
+          <span>{{ item.label }}</span>
+          <strong>{{ item.count }}</strong>
+          <span class="poc-pct">({{ item.pct }}%)</span>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+}
+
+
+<div class="table-card">
+  @if (loading()) { <div class="loader"><div class="spinner"></div></div>
+  } @else {
+    <table>
+      <thead>
+        <tr><th>ID</th><th>@if (isSupplier) { Requested By } @else { Supplier }</th>
+        <th>Order Date</th><th>Expected</th><th>Status</th><th class="right">Total</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        @for (o of orders(); track o.id) {
+          <tr [class.row-pending]="o.status==='PENDING' && isSupplier"
+              [class.row-approved]="o.status==='APPROVED' && auth.isManager()">
+            <td class="mono muted">#{{ o.id }}</td>
+            <td class="bold">@if (isSupplier) { {{ o.createdBy }} } @else { {{ o.supplierName }} }</td>
+            <td class="muted">{{ o.orderDate }}</td>
+            <td class="muted">{{ o.expectedDate || '—' }}</td>
+            <td><span class="badge {{ statusClass(o.status) }}">
+              @if (o.status === 'SHIPPED') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" style="margin-right:4px"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+              }
+              {{ o.status }}
+            </span></td>
+            <td class="right mono bold">₹{{ formatCurrency(o.totalAmount) }}</td>
+            <td>
+              <div class="actions">
+                <button class="btn-view" (click)="openDetail(o)">View</button>
+                @if (isSupplier && o.status === 'PENDING') { <button class="btn-approve" (click)="openDetail(o)">Action ↗</button> }
+                @if (auth.isManager() && (o.status === 'APPROVED' || o.status === 'SHIPPED')) { <button class="btn-complete" (click)="openDetail(o)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="20 6 9 17 4 12"/></svg>
+                  Confirm Receipt
+                </button> }
+                @if (auth.isManager() && o.status === 'PENDING') { <button class="btn-cancel-order" (click)="updateStatus(o.id, 'CANCELLED')">✕ Cancel</button> }
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="7"><div class="empty">No purchase orders yet.</div></td></tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
+
+<!-- ===== CREATE MODAL ===== -->
+@if (showModal()) {
+  <div class="overlay" (click)="closeModal()">
+    <div class="modal po-create-modal" (click)="$event.stopPropagation()">
+      <div class="modal-head"><h3>New Purchase Order</h3><button (click)="closeModal()">✕</button></div>
+      <div class="modal-body">
+        @if (error()) { <div class="error-msg">{{ error() }}</div> }
+
+        <!-- Dates row -->
+        <div class="row-2">
+          <div class="field">
+            <label>Order Date *</label>
+            <input type="date" [(ngModel)]="form.orderDate" />
+          </div>
+          <div class="field">
+            <label>Expected Delivery Date</label>
+            <input type="date" [(ngModel)]="form.expectedDate" [min]="form.orderDate" />
+          </div>
+        </div>
+
+        <!-- Items section -->
+        <div class="items-section">
+          <div class="items-header">
+            <span class="section-label">Order Items *</span>
+            <button class="btn-add-item" type="button" (click)="addItem()">+ Add Item</button>
+          </div>
+
+          @for (item of form.items; track $index) {
+            <div class="po-item-card">
+              <div class="po-item-header">
+                <span class="item-num">Item {{ $index + 1 }}</span>
+                @if (form.items.length > 1) {
+                  <button class="btn-remove" type="button" (click)="removeItem($index)">✕ Remove</button>
+                }
+              </div>
+
+              <!-- Step 1: Category & Subcategory & Product -->
+              <div class="cat-product-row">
+                <!-- Parent Category -->
+                <div class="field">
+                  <label>Category</label>
+                  <select [(ngModel)]="item.selectedCategoryId"
+                          (ngModelChange)="item.selectedSubcategoryId=0; item.productId=0; item.unitPrice=0;">
+                    <option [ngValue]="0">All Categories</option>
+                    @for (c of rootCategories; track c.id) {
+                      <option [ngValue]="c.id">{{ c.name }}</option>
+                    }
+
+                  </select>
+                </div>
+
+                <!-- Subcategory (shown only when parent has subs) -->
+                @if (item.selectedCategoryId && getSubcategories(item.selectedCategoryId).length > 0) {
+                  <div class="field">
+                    <label>Subcategory <span class="field-tag">optional</span></label>
+                    <select [(ngModel)]="item.selectedSubcategoryId"
+                            (ngModelChange)="item.productId=0; item.unitPrice=0;">
+                      <option [ngValue]="0">All Subcategories</option>
+                      @for (s of getSubcategories(item.selectedCategoryId); track s.id) {
+                        <option [ngValue]="s.id">{{ s.name }}</option>
+                      }
+                    </select>
+                  </div>
+                }
+
+                <!-- Product selector -->
+                <div class="field">
+                  <label>Product *</label>
+                  <select [(ngModel)]="item.productId" (ngModelChange)="onProductChange(item)">
+                    <option [ngValue]="0" disabled>
+                      @if (!item.selectedCategoryId) { — Select a product — }
+                      @else if (getProductsByCategory(item.selectedCategoryId, item.selectedSubcategoryId).length === 0) { ⚠ No products in this category }
+                      @else { — Select Product — }
+                    </option>
+                    @for (p of getProductsByCategory(item.selectedCategoryId, item.selectedSubcategoryId); track p.id) {
+                      <option [ngValue]="p.id">
+                        {{ p.name }} @if (p.sku) { ({{ p.sku }}) }
+                      </option>
+                    }
+                  </select>
+                  @if (item.selectedCategoryId && getProductsByCategory(item.selectedCategoryId, item.selectedSubcategoryId).length === 0) {
+                    <span class="field-hint warn">⚠ No products found in this category. Try a subcategory or check product assignments.</span>
+                  }
+                  @if (!item.selectedCategoryId) {
+                    <span class="field-hint">Select a category first to filter products.</span>
+                  }
+                </div>
+              </div>
+
+              <!-- Suppliers who have this product (when no supplier selected yet) -->
+              @if (item.productId && !form.supplierId && suppliersForProduct().length > 0) {
+                <div class="suppliers-available">
+                  <span class="sa-label">Suppliers with this product:</span>
+                  @for (s of suppliersForProduct(); track s.supplier.id) {
+                    <button class="sa-chip" (click)="form.supplierId = s.supplier.id; onSupplierChange()">
+                      {{ s.supplier.name }} — ₹{{ s.stock.costPrice ?? '?' }} — {{ s.stock.availableQuantity }} units
+                    </button>
+                  }
+                </div>
+              }
+              @if (item.productId && !form.supplierId && suppliersForProduct().length === 0) {
+                <div class="no-supplier-warn">⚠ No supplier has this product in warehouse yet.</div>
+              }
+
+              <!-- Qty + Price -->
+              <div class="row-3">
+                <div class="field">
+                  <label>Quantity *</label>
+                  <input type="number" [(ngModel)]="item.quantity" min="1" placeholder="1" />
+                  @if (form.supplierId && item.productId) {
+                    @if (getAvailableQty(item.productId) !== null) {
+                      <span class="field-hint" [class.avail-low]="(getAvailableQty(item.productId) ?? 0) < item.quantity">
+                        In warehouse: {{ getAvailableQty(item.productId) }}
+                      </span>
+                    } @else {
+                      <span class="field-hint avail-none">⚠ Not in selected supplier's warehouse</span>
+                    }
+                  }
+                </div>
+                <div class="field">
+                  <label>Unit Price (₹) *</label>
+                  <input type="number" [(ngModel)]="item.unitPrice" min="0" step="0.01" placeholder="Auto-filled" />
+                  <span class="field-hint">Cost price from supplier</span>
+                </div>
+                <div class="field">
+                  <label>Subtotal</label>
+                  <div class="subtotal-box">₹{{ formatCurrency(item.quantity * item.unitPrice) }}</div>
+                </div>
+              </div>
+            </div>
+          }
+                    <!-- Supplier selector -->
+          @if (form.items[0].productId || form.supplierId) {
+            <div class="supplier-selector-row">
+              <div class="field">
+                <label>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                    <rect x="1" y="3" width="15" height="13"/>
+                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                    <circle cx="5.5" cy="18.5" r="2.5"/>
+                    <circle cx="18.5" cy="18.5" r="2.5"/>
+                  </svg>
+                  Supplier *
+                </label>
+                <select [(ngModel)]="form.supplierId" (ngModelChange)="onSupplierChange()">
+                  <option [ngValue]="0" disabled>— Select Supplier —</option>
+                  @for (s of suppliers(); track s.id) {
+                    <option [ngValue]="s.id">{{ s.name }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          }
+
+          <!-- Order total -->
+          <div class="po-total-row">
+            <span>Order Total</span>
+            <strong class="po-total-val">₹{{ formatCurrency(getOrderTotal()) }}</strong>
+          </div>
+
+          <div class="field">
+            <label>Notes for Supplier</label>
+            <input [(ngModel)]="form.notes" placeholder="Optional notes..." />
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-cancel" (click)="closeModal()">Cancel</button>
+        <button class="btn-save" (click)="save()" [disabled]="saving()">
+          {{ saving() ? 'Creating…' : 'Create & Notify Supplier' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ===== DETAIL MODAL ===== -->
+@if (detail()) {
+  <div class="overlay" (click)="closeDetail()">
+    <div class="modal wide" (click)="$event.stopPropagation()">
+      <div class="modal-head">
+        <div>
+          <h3>PO #{{ detail()!.id }}</h3>
+          <span class="po-meta-sub">
+            @if (isSupplier) {
+              Requested by <strong>{{ detail()!.createdBy }}</strong>
+            } @else {
+              Supplier: <strong>{{ detail()!.supplierName }}</strong>
+            }
+          </span>
+        </div>
+        <button (click)="closeDetail()">✕</button>
+      </div>
+      <div class="modal-body">
+        @if (successMsg()) { <div class="success-msg">{{ successMsg() }}</div> }
+
+        <div class="meta-grid">
+          <div><span class="meta-label">Status</span><span class="badge {{ statusClass(detail()!.status) }}">{{ detail()!.status }}</span></div>
+          <div><span class="meta-label">Order Date</span><span>{{ detail()!.orderDate }}</span></div>
+          <div><span class="meta-label">Expected</span><span>{{ detail()!.expectedDate || '—' }}</span></div>
+          <div><span class="meta-label">Created By</span><span class="bold">{{ detail()!.createdBy }}</span></div>
+          @if (!isSupplier) {
+            <div><span class="meta-label">Supplier</span><span class="bold">{{ detail()!.supplierName }}</span></div>
+          }
+          <div><span class="meta-label">Total</span><span class="bold accent">₹{{ formatCurrency(detail()!.totalAmount) }}</span></div>
+        </div>
+
+        @if (detail()!.notes) { <p class="notes-text">📝 {{ detail()!.notes }}</p> }
+
+        <table class="inner-table">
+          <thead><tr><th>Product</th><th class="right">Qty</th><th class="right">Unit Price</th><th class="right">Subtotal</th></tr></thead>
+          <tbody>
+            @for (item of detail()!.items; track item.id) {
+              <tr>
+                <td>{{ item.productName }}</td>
+                <td class="right mono">
+                  @if (isSupplier && detail()!.status === 'PENDING') {
+                    <input class="qty-edit" type="number" min="1" [(ngModel)]="modifiedQty[item.id]" />
+                  } @else { {{ item.quantity }} }
+                </td>
+                <td class="right mono">₹{{ formatCurrency(item.unitPrice) }}</td>
+                <td class="right mono bold">₹{{ formatCurrency(item.subtotal) }}</td>
+              </tr>
+            }
+          </tbody>
+          <tfoot><tr><td colspan="3" class="right bold">Total</td><td class="right mono bold accent">₹{{ formatCurrency(detail()!.totalAmount) }}</td></tr></tfoot>
+        </table>
+
+        <!-- SUPPLIER ACTIONS -->
+        @if (isSupplier && detail()!.status === 'PENDING') {
+          <div class="supplier-action-panel">
+            <h4 class="panel-title">🔔 Action Required — from {{ detail()!.createdBy }}</h4>
+            <p class="panel-desc">Review quantities, adjust if needed, then approve or reject.</p>
+            <div class="supplier-actions">
+              <input [(ngModel)]="supplierNotes" placeholder="Optional note…" class="notes-input" />
+              <div class="action-btns">
+                <button class="btn-modify" (click)="supplierModify(detail()!.id)">💾 Save Changes</button>
+                <button class="btn-approve-lg" (click)="supplierStatus(detail()!.id, 'APPROVED')">✅ Approve</button>
+                <button class="btn-reject-lg" (click)="supplierStatus(detail()!.id, 'REJECTED')">❌ Reject</button>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- ADMIN CANCEL (before supplier accepts) -->
+        @if (auth.isManager() && detail()!.status === 'PENDING') {
+          <div class="cancel-panel">
+            <div class="cancel-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              <h4>Cancel This Order</h4>
+            </div>
+            <p>Order is still pending supplier approval. You can cancel it now.</p>
+            <button class="btn-cancel-order-lg" (click)="updateStatus(detail()!.id, 'CANCELLED')">
+              ✕ Cancel Purchase Order
+            </button>
+          </div>
+        }
+
+        <!-- ADMIN CONFIRM RECEIPT (APPROVED or SHIPPED) -->
+        @if (auth.isManager() && (detail()!.status === 'APPROVED' || detail()!.status === 'SHIPPED')) {
+          <div class="receipt-panel">
+            <div class="receipt-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+              <h4>🚛 Shipment In Transit — Confirm When You Receive the Products</h4>
+            </div>
+            <p>Supplier has shipped the order. Once physically received, confirm below to update inventory.</p>
+            <button class="btn-confirm-receipt" (click)="updateStatus(detail()!.id, 'COMPLETED')">
+              ✅ Confirm Receipt &amp; Update Inventory
+            </button>
+          </div>
+        }
+
+        <!-- PAYMENT PANEL — Admin/Manager only -->
+        @if (auth.isManager() && !isSupplier) {
+          <div class="payment-panel">
+            <div class="payment-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              <h4>Supplier Payment</h4>
+            </div>
+            <div class="payment-meta">
+              <span>Order Total: <strong>₹{{ formatCurrency(detail()!.totalAmount) }}</strong></span>
+              <span>Supplier: <strong>{{ detail()!.supplierName }}</strong></span>
+              <span>Current Status:
+                <span class="badge {{ paymentBadgeClass(detail()!.paymentStatus ?? '') }}">{{ detail()!.paymentStatus || 'PENDING' }}</span>
+              </span>
+            </div>
+            <div class="payment-btns">
+              @for (ps of ['PENDING','PROCESSING','PAID','FAILED']; track ps) {
+                <button class="payment-status-btn" [class.active]="detail()!.paymentStatus === ps"
+                        (click)="updatePayment(detail()!.id, ps)">
+                  @if (ps === 'PAID') { 💳 }
+                  @if (ps === 'PROCESSING') { ⏳ }
+                  @if (ps === 'PENDING') { 🕐 }
+                  @if (ps === 'FAILED') { ❌ }
+                  {{ ps }}
+                </button>
+              }
+            </div>
+            @if (detail()!.paymentStatus === 'PAID') {
+              <div class="payment-confirmed">✅ Payment confirmed to {{ detail()!.supplierName }}</div>
+            }
+          </div>
+        }
+
+        @if (detail()!.status === 'COMPLETED') {
+          @if (detail()!.stockReceived) {
+            <div class="completed-panel">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><polyline points="20 6 9 17 4 12"/></svg>
+              <div><strong>Completed</strong><p>Products have been added to inventory.</p></div>
+            </div>
+          } @else {
+            <div class="completed-panel pending-stock">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <div><strong>Completed — Stock Pending</strong><p>Goods received. Stock will be added to inventory once payment is marked as <strong>PAID</strong>.</p></div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  </div>
+}
+
+
+          

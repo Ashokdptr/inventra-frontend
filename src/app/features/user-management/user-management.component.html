@@ -1,0 +1,205 @@
+<div class="page-header">
+  <div class="page-title">
+    <h1>User Management</h1>
+    <p>Manage system users, roles, departments and access permissions</p>
+  </div>
+  <div class="hd-actions">
+    <button class="btn-export-um">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export
+    </button>
+    <button class="btn-add" (click)="openCreate()">+ Add User</button>
+  </div>
+</div>
+
+<!-- UM KPI Strip -->
+<div class="um-kpi-row">
+  <div class="um-kpi-card">
+    <div class="um-kpi-icon" style="background:#dbeafe;color:#2563eb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+    <div>
+      <div class="um-kpi-label">Total Users</div>
+      <div class="um-kpi-val">{{ users().length }}</div>
+      <div class="um-kpi-sub">All system users</div>
+    </div>
+  </div>
+  <div class="um-kpi-card">
+    <div class="um-kpi-icon" style="background:#fff7ed;color:#ea580c"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+    <div>
+      <div class="um-kpi-label">Pending Approval</div>
+      <div class="um-kpi-val" style="color:#f59e0b">{{ pendingCount() }}</div>
+      <div class="um-kpi-sub">Users awaiting approval</div>
+    </div>
+  </div>
+  <div class="um-kpi-card">
+    <div class="um-kpi-icon" style="background:#dcfce7;color:#16a34a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+    <div>
+      <div class="um-kpi-label">Active Users</div>
+      <div class="um-kpi-val" style="color:#16a34a">{{ activeCount() }}</div>
+      <div class="um-kpi-sub">Currently active</div>
+    </div>
+  </div>
+  <div class="um-kpi-card">
+    <div class="um-kpi-icon" style="background:#ede9fe;color:#7c3aed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+    <div>
+      <div class="um-kpi-label">Your Role</div>
+      <div class="um-kpi-val" style="font-size:16px;letter-spacing:.5px">{{ auth.userRole() }}</div>
+      <div class="um-kpi-sub">Full access</div>
+    </div>
+  </div>
+</div>
+
+<!-- Users table -->
+<div class="table-card">
+  @if (loading()) {
+    <div class="loader"><div class="spinner"></div></div>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Name &amp; Contact</th>
+          <th>Role</th>
+          <th>Department</th>
+          <th>Approval</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (u of users(); track u.id) {
+          <tr [class.row-pending]="u.approvalStatus === 'PENDING'">
+            <td>
+              <div class="user-cell">
+                <div class="user-avatar-sm">{{ u.name.slice(0,2).toUpperCase() }}</div>
+                <div>
+                  <div class="bold">{{ u.name }}</div>
+                  <div class="muted small">{{ u.email }}</div>
+                  @if (u.phone) { <div class="muted small">📞 {{ u.phone }}</div> }
+                </div>
+              </div>
+            </td>
+            <td>
+              @if (auth.isAdmin() && roleEditId() === u.id) {
+                <div class="role-edit-inline">
+                  <select [(ngModel)]="editingRole" class="role-select">
+                    <option value="MANAGER">MANAGER</option>
+                    <option value="STAFF">STAFF</option>
+                    <option value="SUPPLIER">SUPPLIER</option>
+                  </select>
+                  <button class="btn-role-save" (click)="changeRole(u.id, editingRole)">✓</button>
+                  <button class="btn-role-cancel" (click)="cancelRoleEdit()">✕</button>
+                </div>
+              } @else {
+                <div class="role-display">
+                  <span class="badge {{ getRoleBadgeClass(u.role) }}">{{ u.role }}</span>
+                  @if (auth.isAdmin() && u.role !== 'ADMIN') {
+                    <button class="btn-edit-role" (click)="startRoleEdit(u)" title="Change role">✎</button>
+                  }
+                </div>
+              }
+            </td>
+            <td class="muted">{{ u.department || u.assignedCategories || '—' }}</td>
+            <td>
+              <div class="approval-cell">
+                <span class="badge {{ 'approval-' + (u.approvalStatus || 'APPROVED').toLowerCase() }}">
+                  {{ u.approvalStatus || 'APPROVED' }}
+                </span>
+                @if (u.approvedBy) {
+                  <span class="approved-by">by {{ u.approvedBy }}</span>
+                }
+              </div>
+            </td>
+            <td>
+              <span class="status-dot" [class.active]="u.isActive" [class.inactive]="!u.isActive">
+                {{ u.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td>
+              <div class="actions">
+                @if (u.approvalStatus === 'PENDING') {
+                  <button class="btn-approve" (click)="approve(u)">✓ Approve</button>
+                  <button class="btn-reject"  (click)="reject(u)">✕ Reject</button>
+                }
+                <button class="btn-toggle" (click)="toggle(u)">
+                  {{ u.isActive ? 'Disable' : 'Enable' }}
+                </button>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="6"><div class="empty">No users found.</div></td></tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
+
+<!-- Create User Modal -->
+@if (showModal()) {
+  <div class="overlay" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-head">
+        <div>
+          <h3>Add New User</h3>
+          <p class="modal-sub">
+            @if (auth.isAdmin()) { Admin can create Managers, Staff and Suppliers }
+            @else { Managers can create Staff accounts }
+          </p>
+        </div>
+        <button (click)="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        @if (error()) { <div class="error-box">{{ error() }}</div> }
+
+        <div class="row-2">
+          <div class="field">
+            <label>Full Name *</label>
+            <input [(ngModel)]="form.name" placeholder="e.g. John Doe" />
+          </div>
+          <div class="field">
+            <label>Phone</label>
+            <input [(ngModel)]="form.phone" placeholder="+91 98765 43210" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Email Address *</label>
+          <input type="email" [(ngModel)]="form.email" placeholder="user@company.com" />
+        </div>
+        <div class="field">
+          <label>Role *</label>
+          <div class="role-cards-sm">
+            @for (role of roleOptions(); track role.id) {
+              <div class="rc-sm" [class.rc-active]="form.roleId === role.id"
+                   (click)="form.roleId = role.id">
+                {{ role.label }}
+              </div>
+            }
+          </div>
+        </div>
+        <div class="field">
+          <label>Department / Category</label>
+          <input [(ngModel)]="form.department" placeholder="e.g. Electronics, Operations" />
+        </div>
+        <div class="field">
+          <label>Temporary Password * <span class="temp-hint">User must change on first login</span></label>
+          <div class="pwd-wrap">
+            <input [type]="showPwd ? 'text' : 'password'" [(ngModel)]="form.password"
+                   placeholder="Min. 6 characters" />
+            <button class="eye-btn" type="button" (click)="showPwd = !showPwd">
+              @if (showPwd) { 🙈 } @else { 👁️ }
+            </button>
+          </div>
+        </div>
+        <div class="temp-pass-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          This is a temporary password. The user will be prompted to set a new password after first login.
+          Share it securely — admin/manager will not see it again.
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-cancel" (click)="closeModal()">Cancel</button>
+        <button class="btn-save" (click)="createUser()" [disabled]="saving()">
+          {{ saving() ? 'Creating…' : 'Create User' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

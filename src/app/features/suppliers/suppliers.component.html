@@ -1,0 +1,314 @@
+<!-- ============ SUPPLIER VIEW: My Warehouse ============ -->
+@if (isSupplier) {
+  <div class="page-header">
+    <div class="page-title"><h1>My Warehouse</h1><p>Manage your product stock and pricing</p></div>
+  </div>
+
+  <!-- Add/Update stock form -->
+  <div class="wh-add-card">
+    <div class="wh-add-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M12 5v14M5 12h14"/></svg>
+      Add / Update Product Stock
+    </div>
+    @if (stockError()) { <div class="error-msg">{{ stockError() }}</div> }
+    @if (successMsg()) { <div class="success-msg">{{ successMsg() }}</div> }
+
+    <div class="wh-add-grid">
+      <!-- Category filter: shows root categories AND subcategories as optgroups -->
+      <div class="add-field">
+        <label>Category</label>
+        <select [(ngModel)]="selectedCategoryId" (ngModelChange)="onCategoryChange()">
+          <option [ngValue]="0">All Categories</option>
+          @for (root of categories(); track root.id) {
+            @if (root.subcategories && root.subcategories.length > 0) {
+              <!-- Root with subcategories: show as optgroup -->
+              <optgroup [label]="root.name">
+                <option [ngValue]="root.id">{{ root.name }} (All)</option>
+                @for (sub of root.subcategories; track sub.id) {
+                  <option [ngValue]="sub.id">↳ {{ sub.name }}</option>
+                }
+              </optgroup>
+            } @else {
+              <!-- Root without subcategories: show directly -->
+              <option [ngValue]="root.id">{{ root.name }}</option>
+            }
+          }
+        </select>
+      </div>
+
+      <!-- Product search with live dropdown -->
+      <div class="add-field grow">
+        <label>Product * <span class="hint-sm">type name or SKU</span></label>
+        <div class="prod-wrap">
+          <input
+            class="prod-input"
+            [value]="productSearch"
+            (input)="filterProducts($any($event.target).value)"
+            (focus)="filterProducts(productSearch)"
+            (blur)="hideDrop()"
+            placeholder="Search product name or SKU…"
+            autocomplete="off" />
+          @if (showProdDrop()) {
+            <div class="prod-drop">
+              @for (p of filteredProducts(); track p.id) {
+                <div class="prod-opt" (mousedown)="pickProduct(p)">
+                  <div class="opt-info">
+                    <span class="opt-name">{{ p.name }}</span>
+                    <span class="opt-meta">
+                      {{ p.parentCategoryName ? p.parentCategoryName + ' › ' : '' }}{{ p.categoryName || '—' }}
+                      &nbsp;·&nbsp; SKU: {{ p.sku }}
+                    </span>
+                  </div>
+                  <span class="opt-stock {{ p.stockStatus === 'OUT_OF_STOCK' ? 'out' : p.stockStatus === 'LOW_STOCK' ? 'low' : 'ok' }}">
+                    {{ p.currentStock }}
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+        @if (selectedProduct()) {
+          <div class="selected-product-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="20 6 9 17 4 12"/></svg>
+            {{ selectedProduct()!.name }}
+            @if (selectedProduct()!.categoryName) {
+              <span class="chip-cat">· {{ selectedProduct()!.parentCategoryName ? selectedProduct()!.parentCategoryName + ' › ' : '' }}{{ selectedProduct()!.categoryName }}</span>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="add-field">
+        <label>Available Qty *</label>
+        <input type="number" min="0" [(ngModel)]="stockQty" placeholder="0" />
+      </div>
+      <div class="add-field">
+        <label>Your Cost Price (₹)</label>
+        <input type="number" min="0" step="0.01" [(ngModel)]="costPrice" placeholder="Auto-filled" />
+      </div>
+      <div class="add-field">
+        <label>Your Ref. Code <span class="hint-sm">optional</span></label>
+        <input [(ngModel)]="supplierSku" placeholder="e.g. DELL-001" />
+      </div>
+      <div class="add-field add-btn-wrap">
+        <label>&nbsp;</label>
+        <button class="btn-save" (click)="saveMyStock()" [disabled]="saving()">
+          {{ saving() ? 'Saving…' : '+ Save Stock' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Warehouse stock grid -->
+  <div class="wh-section-title">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M5 8h14M5 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8m-9 4h4"/></svg>
+    Current Stock — {{ warehouse().length }} product{{ warehouse().length !== 1 ? 's' : '' }}
+  </div>
+
+  @if (loading()) {
+    <div class="loader"><div class="spinner"></div></div>
+  } @else if (warehouse().length === 0) {
+    <div class="empty-wh">
+      <div class="ewh-icon">📦</div>
+      <h3>No warehouse stock yet</h3>
+      <p>Use the form above to add products to your warehouse.</p>
+    </div>
+  } @else {
+    <div class="wh-grid">
+      @for (w of warehouse(); track w.id) {
+        <div class="wh-box" [class.wh-low]="w.availableQuantity < 10" [class.wh-out]="w.availableQuantity === 0">
+          <div class="wh-box-top">
+            <div class="wh-box-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            </div>
+            <div class="wh-box-status">
+              @if (w.availableQuantity === 0) {
+                <span class="badge badge-danger">Out of Stock</span>
+              } @else if (w.availableQuantity < 10) {
+                <span class="badge badge-warn">Low Stock</span>
+              } @else {
+                <span class="badge badge-success">Available</span>
+              }
+            </div>
+          </div>
+          <h4 class="wh-box-name">{{ w.productName }}</h4>
+          <div class="wh-box-sku">Ref: {{ w.supplierSku || ('WH-' + w.supplierId + '-' + w.productId) }}</div>
+          <div class="wh-box-stats">
+            <div class="wh-stat">
+              <span class="ws-label">Available</span>
+              <span class="ws-val" [class.ws-low]="w.availableQuantity < 10" [class.ws-out]="w.availableQuantity === 0">
+                {{ w.availableQuantity }}
+              </span>
+            </div>
+            <div class="wh-stat-div"></div>
+            <div class="wh-stat">
+              <span class="ws-label">Cost Price</span>
+              <span class="ws-val">{{ w.costPrice ? '₹' + w.costPrice : '—' }}</span>
+            </div>
+          </div>
+          <button class="wh-box-edit" (click)="quickEditWarehouse(w)">✎ Update</button>
+        </div>
+      }
+    </div>
+  }
+}
+
+<!-- ============ ADMIN / MANAGER VIEW ============ -->
+@if (!isSupplier) {
+  <div class="page-header">
+    <div class="page-title"><h1>Suppliers</h1><p>Manage supplier profiles and warehouse stock</p></div>
+    <div class="hd-actions">
+      <button class="btn-icon-sup">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export
+      </button>
+      @if (auth.isManager()) { <button class="btn-add" (click)="openCreate()">+ Add Supplier</button> }
+    </div>
+  </div>
+
+  <!-- KPI Strip -->
+  <div class="sup-kpi-row">
+    <div class="sup-kpi-card">
+      <div class="sup-kpi-icon" style="background:#dbeafe;color:#2563eb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div>
+        <div class="sup-kpi-label">Total Suppliers</div>
+        <div class="sup-kpi-val">{{ suppliers().length }}</div>
+        <div class="sup-kpi-sub">All registered suppliers</div>
+      </div>
+    </div>
+    <div class="sup-kpi-card">
+      <div class="sup-kpi-icon" style="background:#dcfce7;color:#16a34a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+      <div>
+        <div class="sup-kpi-label">Active Suppliers</div>
+        <div class="sup-kpi-val" style="color:#16a34a">{{ activeSupplierCount() }}</div>
+        <div class="sup-kpi-sub">Currently active</div>
+      </div>
+    </div>
+    <div class="sup-kpi-card">
+      <div class="sup-kpi-icon" style="background:#fff7ed;color:#ea580c"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+      <div>
+        <div class="sup-kpi-label">Suppliers with Stock</div>
+        <div class="sup-kpi-val">{{ suppliers().length }}</div>
+        <div class="sup-kpi-sub">Supplies in warehouse</div>
+      </div>
+    </div>
+    <div class="sup-kpi-card">
+      <div class="sup-kpi-icon" style="background:#ede9fe;color:#7c3aed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+      <div>
+        <div class="sup-kpi-label">Last Purchase</div>
+        <div class="sup-kpi-val" style="font-size:14px;letter-spacing:0">Recent</div>
+        <div class="sup-kpi-sub">From recent supplier</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    @if (loading()) { <div class="loader"><div class="spinner"></div></div>
+    } @else {
+      <table>
+        <thead>
+          <tr><th>Supplier</th><th>Contact Person</th><th>Email</th><th>Phone</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          @for (s of suppliers(); track s.id) {
+            <tr>
+              <td>
+                <div class="sup-name-cell">
+                  <div class="sup-avatar-sm">{{ s.name.slice(0,2).toUpperCase() }}</div>
+                  <div>
+                    <div class="bold">{{ s.name }}</div>
+                    <div class="muted small">General Supplies</div>
+                  </div>
+                </div>
+              </td>
+              <td class="muted">{{ s.contactName || '—' }}</td>
+              <td>{{ s.email || '—' }}</td>
+              <td class="mono muted">{{ s.phone || '—' }}</td>
+              <td><span class="badge badge-success">Active</span></td>
+              <td>
+                <div class="actions">
+                  <button class="btn-warehouse" (click)="openWarehouse(s)">Warehouse</button>
+                  @if (auth.isManager()) { <button class="btn-edit" (click)="openEdit(s)">Edit</button> }
+                  @if (auth.isAdmin()) { <button class="btn-del" (click)="delete(s.id)">Delete</button> }
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6"><div class="empty">No suppliers yet.</div></td></tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
+  <!-- Add/Edit Supplier Modal -->
+  @if (showModal()) {
+    <div class="overlay" (click)="closeModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-head"><h3>{{ editId() ? 'Edit Supplier' : 'Add Supplier' }}</h3><button (click)="closeModal()">✕</button></div>
+        <div class="modal-body">
+          @if (error()) { <div class="error-msg">{{ error() }}</div> }
+          <div class="field"><label>Supplier Name *</label><input [(ngModel)]="form.name" placeholder="e.g. ABC Distributors" /></div>
+          <div class="row-2">
+            <div class="field"><label>Email</label><input type="email" [(ngModel)]="form.email" placeholder="supplier@example.com" /></div>
+            <div class="field"><label>Phone</label><input [(ngModel)]="form.phone" placeholder="+91 98765 43210" /></div>
+          </div>
+          <div class="field"><label>Contact Person</label><input [(ngModel)]="form.contactName" placeholder="e.g. John Doe" /></div>
+          <div class="field"><label>Address</label><textarea rows="2" [(ngModel)]="form.address" placeholder="Full address..."></textarea></div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn-cancel" (click)="closeModal()">Cancel</button>
+          <button class="btn-save" (click)="save()" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save' }}</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Warehouse Stock Modal (admin/manager read-only view) -->
+  @if (showWarehouse()) {
+    <div class="overlay" (click)="closeWarehouse()">
+      <div class="modal wide" (click)="$event.stopPropagation()">
+        <div class="modal-head">
+          <h3>{{ warehouseSupplier()?.name }} — Warehouse</h3>
+          <button (click)="closeWarehouse()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="wh-readonly-notice">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span>Viewing supplier's warehouse stock (read-only). Only the supplier can update their own stock levels.</span>
+          </div>
+          @if (loading()) {
+            <div class="loader"><div class="spinner"></div></div>
+          } @else {
+            <div class="wh-grid compact">
+              @for (w of warehouse(); track w.id) {
+                <div class="wh-box small" [class.wh-low]="w.availableQuantity < 10" [class.wh-out]="w.availableQuantity === 0">
+                  <div class="wh-box-status-row">
+                    @if (w.availableQuantity === 0) {
+                      <span class="badge badge-danger">Out of Stock</span>
+                    } @else if (w.availableQuantity < 10) {
+                      <span class="badge badge-warn">Low</span>
+                    } @else {
+                      <span class="badge badge-success">Available</span>
+                    }
+                  </div>
+                  <h4 class="wh-box-name">{{ w.productName }}</h4>
+                  <div class="wh-box-sku">{{ w.supplierSku || w.sku || ('WH-' + w.supplierId + '-' + w.productId) }}</div>
+                  <div class="wh-box-stats">
+                    <div class="wh-stat"><span class="ws-label">Stock</span><span class="ws-val" [class.ws-low]="w.availableQuantity < 10" [class.ws-out]="w.availableQuantity === 0">{{ w.availableQuantity }}</span></div>
+                    <div class="wh-stat-div"></div>
+                    <div class="wh-stat"><span class="ws-label">Cost</span><span class="ws-val">{{ w.costPrice ? '₹'+w.costPrice : '—' }}</span></div>
+                  </div>
+                </div>
+              } @empty {
+                <div class="empty" style="grid-column:span 4;padding:24px;text-align:center;color:#94a3b8;">
+                  <div style="font-size:2em;margin-bottom:8px">📦</div>
+                  Supplier has not added any warehouse stock yet.
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+}

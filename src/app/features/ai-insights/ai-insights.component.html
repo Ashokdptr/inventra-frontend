@@ -1,0 +1,124 @@
+<div class="page-header">
+  <div class="page-title">
+    <h1>AI Insights</h1>
+    <p>Demand predictions and smart reorder suggestions</p>
+  </div>
+  <div class="btn-group">
+    <button class="btn-run" [disabled]="running()" (click)="runPredictions()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      {{ running() ? 'Running…' : 'Run Predictions' }}
+    </button>
+    <button class="btn-run secondary" [disabled]="running()" (click)="runSuggestions()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      {{ running() ? 'Running…' : 'Run Suggestions' }}
+    </button>
+  </div>
+</div>
+
+<!-- AI KPI Strip -->
+<div class="ai-kpi-row">
+  <div class="ai-kpi-card">
+    <div class="ai-kpi-icon" style="background:#dbeafe;color:#2563eb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+    <div>
+      <div class="ai-kpi-label">Total Products Analyzed</div>
+      <div class="ai-kpi-val">{{ predictions().length }}</div>
+      <div class="ai-kpi-sub">Across all categories</div>
+    </div>
+  </div>
+  <div class="ai-kpi-card">
+    <div class="ai-kpi-icon" style="background:#fff7ed;color:#ea580c"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
+    <div>
+      <div class="ai-kpi-label">High Demand (Next 30 Days)</div>
+      <div class="ai-kpi-val" style="color:#f59e0b">{{ highDemandCount() }}</div>
+      <div class="ai-kpi-sub">{{ predictions().length ? ((highDemandCount() / predictions().length) * 100).toFixed(0) : 0 }}% of total products</div>
+    </div>
+  </div>
+  <div class="ai-kpi-card">
+    <div class="ai-kpi-icon" style="background:#fee2e2;color:#dc2626"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>
+    <div>
+      <div class="ai-kpi-label">Reorder Recommended</div>
+      <div class="ai-kpi-val" style="color:#ef4444">{{ suggestions().length }}</div>
+      <div class="ai-kpi-sub">Need attention</div>
+    </div>
+  </div>
+  <div class="ai-kpi-card">
+    <div class="ai-kpi-icon" style="background:#dcfce7;color:#16a34a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+    <div>
+      <div class="ai-kpi-label">Prediction Accuracy</div>
+      <div class="ai-kpi-val" style="color:#16a34a">{{ avgAccuracy() }}%</div>
+      <div class="ai-kpi-sub">AI Confidence Score</div>
+    </div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button [class.active]="activeTab() === 'predictions'" (click)="setTab('predictions')">
+    📈 Demand Predictions
+  </button>
+  <button [class.active]="activeTab() === 'suggestions'" (click)="setTab('suggestions')">
+    💡 Reorder Suggestions
+  </button>
+</div>
+
+@if (loading()) {
+  <div class="loader"><div class="spinner"></div></div>
+} @else if (activeTab() === 'predictions') {
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr><th>Product</th><th class="right">Predicted Demand</th><th>Prediction Date</th><th>Confidence</th></tr>
+      </thead>
+      <tbody>
+        @for (p of predictions(); track p.id) {
+          <tr>
+            <td class="bold">{{ p.productName }}</td>
+            <td class="right mono">{{ p.predictedDemand }} units</td>
+            <td class="muted">{{ p.predictionDate }}</td>
+            <td>
+              <div class="conf-bar">
+                <div class="conf-fill {{ confidenceClass(p.confidenceScore) }}"
+                     [style.width.%]="p.confidenceScore * 100"></div>
+              </div>
+              <span class="conf-label">{{ (p.confidenceScore * 100).toFixed(0) }}%</span>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="4">
+            <div class="empty">No predictions yet. Click "Run Predictions" to generate.</div>
+          </td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+} @else {
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr><th>Product</th><th class="right">Suggested Qty</th><th>Reason</th><th>Status</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        @for (s of suggestions(); track s.id) {
+          <tr>
+            <td class="bold">{{ s.productName }}</td>
+            <td class="right mono accent">{{ s.suggestedQuantity }} units</td>
+            <td class="reason">{{ s.reason }}</td>
+            <td>
+              <span class="badge" [class]="s.isActioned ? 'badge-done' : 'badge-pending'">
+                {{ s.isActioned ? 'Actioned' : 'Pending' }}
+              </span>
+            </td>
+            <td>
+              @if (!s.isActioned) {
+                <button class="btn-action" (click)="action(s.id)">✓ Action</button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5">
+            <div class="empty">No suggestions yet. Click "Run Suggestions" to generate.</div>
+          </td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

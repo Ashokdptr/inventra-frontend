@@ -1,0 +1,105 @@
+<div class="page-header">
+  <div class="page-title">
+    <h1>Reports</h1>
+    <p>Sales and inventory analytics</p>
+  </div>
+  <div class="report-actions">
+    <button type="button" class="btn-csv" (click)="downloadCsv()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download CSV
+    </button>
+    <button type="button" class="btn-excel" (click)="downloadExcel()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download Excel
+    </button>
+  </div>
+</div>
+
+<div class="summary-grid">
+  <div class="summary-card">
+    <div class="s-icon" style="background:#dcfce7;color:#16a34a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+    <div>
+      <div class="s-label">TOTAL REVENUE</div>
+      <div class="s-value">&#8377;{{ formatCurrency(totalRevenue()) }}</div>
+      <div class="s-sub kpi-up">↑ 18% vs last 30 days</div>
+    </div>
+  </div>
+  <div class="summary-card">
+    <div class="s-icon" style="background:#dbeafe;color:#2563eb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg></div>
+    <div>
+      <div class="s-label">TRANSACTIONS</div>
+      <div class="s-value">{{ totalTransactions() }}</div>
+      <div class="s-sub kpi-up">↑ 11% vs last 30 days</div>
+    </div>
+  </div>
+  <div class="summary-card">
+    <div class="s-icon" style="background:#ede9fe;color:#7c3aed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>
+    <div>
+      <div class="s-label">TOTAL STOCK UNITS</div>
+      <div class="s-value">{{ totalStockUnits() }}</div>
+      <div class="s-sub kpi-up">↑ 9% vs last 30 days</div>
+    </div>
+  </div>
+  <div class="summary-card">
+    <div class="s-icon" style="background:#fff7ed;color:#ea580c"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>
+    <div>
+      <div class="s-label">LOW STOCK ITEMS</div>
+      <div class="s-value" style="color:#f59e0b">{{ lowStockCount() }}</div>
+      <div class="s-sub kpi-down">↓ 16% vs last 30 days</div>
+    </div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button [class.active]="activeTab() === 'sales'" (click)="setTab('sales')">Sales Report</button>
+  <button [class.active]="activeTab() === 'inventory'" (click)="setTab('inventory')">Inventory Report</button>
+  <button [class.active]="activeTab() === 'stock'" (click)="setTab('stock')">Stock Status</button>
+</div>
+
+<div class="table-card">
+  @if (loading()) {
+    <div class="loader"><div class="spinner"></div></div>
+  } @else if (activeTab() === 'sales') {
+    <table>
+      <thead>
+        <tr><th>Date</th><th>Customer</th><th>Items</th><th class="right">Amount</th><th>Created By</th></tr>
+      </thead>
+      <tbody>
+        @for (s of sales(); track s.id) {
+          <tr>
+            <td class="muted">{{ s.saleDate }}</td>
+            <td class="bold">{{ s.customerName || 'Walk-in' }}</td>
+            <td class="muted">{{ s.items.length }}</td>
+            <td class="right mono bold">&#8377;{{ formatCurrency(s.totalAmount) }}</td>
+            <td class="muted">{{ s.createdBy }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5"><div class="empty">No sales data.</div></td></tr>
+        }
+      </tbody>
+    </table>
+  } @else if (activeTab() === 'inventory') {
+    <table>
+      <thead>
+        <tr><th>Product</th><th>SKU</th><th class="right">Stock</th><th>Reorder Level</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        @for (i of inventory(); track i.inventoryId) {
+          <tr>
+            <td class="bold">{{ i.productName }}</td>
+            <td class="mono muted">{{ i.sku }}</td>
+            <td class="right mono">{{ i.currentStock }}</td>
+            <td class="muted">{{ i.reorderLevel }}</td>
+            <td><span class="badge {{ statusClass(i.stockStatus) }}">{{ statusLabel(i.stockStatus) }}</span></td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5"><div class="empty">No inventory data.</div></td></tr>
+        }
+      </tbody>
+    </table>
+  } @else {
+    <div class="stock-summary">
+      <div class="stock-row"><span class="dot green"></span>In Stock: <strong>{{ inStockCount() }}</strong> products</div>
+      <div class="stock-row"><span class="dot yellow"></span>Low Stock: <strong>{{ lowStockCount() }}</strong> products</div>
+      <div class="stock-row"><span class="dot red"></span>Out of Stock: <strong>{{ outOfStockCount() }}</strong> products</div>
+    </div>
+  }
+</div>

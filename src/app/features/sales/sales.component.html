@@ -1,0 +1,499 @@
+<!-- ── Page Header ──────────────────────────────────── -->
+<div class="page-header">
+  <div class="page-title">
+    <h1>Sales Overview</h1>
+    <p>Track your sales performance and transactions</p>
+  </div>
+  <div class="header-right">
+    <div class="date-range-chip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      {{ salesDateRange() }}
+    </div>
+    <button class="btn-new-sale" (click)="openNewSale()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Sale
+    </button>
+  </div>
+</div>
+
+<!-- ── KPI Strip ────────────────────────────────────── -->
+<div class="kpi-strip">
+  <div class="kpi-card">
+    <div class="kpi-ico-wrap" style="background:#dbeafe;color:#2563eb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+    <div>
+      <div class="kpi-label">Total Revenue</div>
+      <div class="kpi-value">₹{{ formatCurrency(totalRevenue()) }}</div>
+      <div class="kpi-sub kpi-up">↑ 10.8% vs last 7 days</div>
+    </div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-ico-wrap" style="background:#dcfce7;color:#16a34a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
+    <div>
+      <div class="kpi-label">Total Orders</div>
+      <div class="kpi-value">{{ sales().length }}</div>
+      <div class="kpi-sub kpi-up">↑ 10.8% vs last 7 days</div>
+    </div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-ico-wrap" style="background:#ede9fe;color:#7c3aed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>
+    <div>
+      <div class="kpi-label">Avg Order Value</div>
+      <div class="kpi-value">₹{{ formatCurrency(avgOrderValue()) }}</div>
+      <div class="kpi-sub kpi-up">↑ 8.3% vs last 7 days</div>
+    </div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-ico-wrap" style="background:#fff7ed;color:#ea580c"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+    <div>
+      <div class="kpi-label">Gross Profit</div>
+      <div class="kpi-value">₹{{ formatCurrency(grossProfit()) }}</div>
+      <div class="kpi-sub kpi-up">↑ 18.5% vs last 7 days</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Analytics Row: Revenue Trend + Top Selling + Payment Status ── -->
+<div class="sales-analytics-row">
+
+  <!-- Revenue Trend line chart -->
+  <div class="analytics-card wide">
+    <div class="panel-hd">
+      <div>
+        <h3>Revenue Trend</h3>
+        <p class="panel-sub">Revenue and sales count over the last 7 days</p>
+      </div>
+      <div class="period-tabs">
+        <button class="active">This Week</button>
+      </div>
+    </div>
+    <div class="legend-row">
+      <span class="leg-dot" style="background:#6366f1"></span><span>Revenue (₹)</span>
+      <span class="leg-dot" style="background:#10b981;margin-left:14px"></span><span>Orders</span>
+    </div>
+    <div class="trend-chart-wrap">
+      @if (trendPoints().length > 1) {
+        <svg viewBox="0 0 500 150" preserveAspectRatio="none" class="trend-svg">
+          <defs>
+            <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#6366f1" stop-opacity="0.25"/>
+              <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          @for (y of trendGridY(); track y) {
+            <line x1="40" [attr.y1]="y" x2="490" [attr.y2]="y" stroke="var(--border-color)" stroke-width="0.5"/>
+            <text [attr.x]="36" [attr.y]="y+4" text-anchor="end" font-size="9" fill="var(--text-muted)">{{ trendGridLabel(y) }}</text>
+          }
+          <path [attr.d]="trendAreaPath()" fill="url(#trendGrad)"/>
+          <path [attr.d]="trendLinePath()" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+          @for (pt of trendPoints(); track pt.label) {
+            <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="4" fill="#6366f1" stroke="white" stroke-width="2"/>
+          }
+        </svg>
+        <div class="trend-labels">
+          @for (b of salesBars(); track b.date) {
+            <span>{{ b.label }}</span>
+          }
+        </div>
+      } @else {
+        <div class="empty-chart">No sales data this week</div>
+      }
+    </div>
+  </div>
+
+  <!-- Top Selling Products -->
+  <div class="analytics-card">
+    <div class="panel-hd"><h3>Top Selling Products</h3><span class="panel-sub">This Week</span></div>
+    <div class="top-sell-list">
+      @for (item of topSelling(); track item.name; let i = $index) {
+        <div class="sell-row">
+          <span class="sell-rank">{{ i + 1 }}</span>
+          <div class="sell-info">
+            <span class="sell-name" [title]="item.name">{{ item.name.length > 22 ? item.name.slice(0,20)+'…' : item.name }}</span>
+            <div class="sell-bar-track"><div class="sell-bar" [style.width.%]="item.pct"></div></div>
+          </div>
+          <strong class="sell-amt">₹{{ formatCompact(item.total) }}</strong>
+        </div>
+      } @empty {
+        <div class="empty-chart">No sales this week</div>
+      }
+    </div>
+  </div>
+
+  <!-- Sales by Payment Status donut -->
+  <div class="analytics-card narrow">
+    <div class="panel-hd"><h3>Sales by Payment Status</h3><span class="panel-sub">This Week</span></div>
+    <div class="donut-center">
+      <div class="donut-ring"
+           [style.background]="paymentDonut().gradient">
+        <div class="donut-inner">
+          <span class="donut-big">{{ sales().length }}</span>
+          <span class="donut-sm">Orders</span>
+        </div>
+      </div>
+    </div>
+    <div class="donut-legend-list">
+      @for (item of paymentStatusBreakdown(); track item.label) {
+        <div class="dleg-row">
+          <span class="dleg-dot" [style.background]="item.color"></span>
+          <span class="dleg-label">{{ item.label }}</span>
+          <strong>{{ item.count }}</strong>
+          <span class="dleg-pct">({{ item.pct }}%)</span>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- ── Sales by Category donut + Recent Activities ── -->
+<div class="sales-bottom-row">
+
+  <!-- Sales by Category donut -->
+  <div class="analytics-card">
+    <div class="panel-hd"><h3>Sales by Category</h3><span class="panel-sub">This Week</span></div>
+    <div class="cat-donut-wrap">
+      <div class="donut-ring"
+           [style.background]="categoryDonut().gradient">
+        <div class="donut-inner">
+          <span class="donut-big">{{ categoryDonut().totalPct }}%</span>
+          <span class="donut-sm">Revenue</span>
+        </div>
+      </div>
+      <div class="cat-legend">
+        @for (item of categoryBreakdown(); track item.name) {
+          <div class="dleg-row">
+            <span class="dleg-dot" [style.background]="item.color"></span>
+            <span class="dleg-label">{{ item.name }}</span>
+            <strong>₹{{ formatCompact(item.total) }}</strong>
+            <span class="dleg-pct">({{ item.pct }}%)</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activities -->
+  <div class="analytics-card wide">
+    <div class="panel-hd"><h3>Recent Activities</h3><a class="see-all" routerLink="/sales">View all activities</a></div>
+    <div class="activity-list">
+      @for (s of recentActivity(); track s.id) {
+        <div class="activity-row {{ s.type }}">
+          <div class="act-icon {{ s.type }}">
+            @if (s.type === 'completed') {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><polyline points="20 6 9 17 4 12"/></svg>
+            } @else if (s.type === 'pending') {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            } @else {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            }
+          </div>
+          <div class="act-body">
+            <div class="act-title">{{ s.title }}</div>
+            <div class="act-sub">{{ s.sub }}</div>
+          </div>
+          <div class="act-time">{{ s.time }}</div>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+
+<div class="sales-graph-card">
+  <div class="graph-head">
+    <div>
+      <h3>7-Day Revenue Trend</h3>
+      <p>Daily sales from the last 7 days</p>
+    </div>
+    <strong>₹{{ formatCurrency(totalRevenue()) }}</strong>
+  </div>
+  <div class="sales-bars">
+    @for (bar of salesBars(); track bar.date) {
+      <div class="sales-bar-col">
+        <div class="sales-bar-wrap">
+          <div class="sales-bar" [style.height.%]="bar.height"
+               [title]="bar.label + ': ₹' + formatCurrency(bar.amount)"></div>
+        </div>
+        <span>{{ bar.label }}</span>
+        <small>₹{{ bar.amount > 0 ? formatCurrency(bar.amount) : '0' }}</small>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- ── Sales History Table ──────────────────────────── -->
+<div class="table-card">
+  @if (loading()) {
+    <div class="loader"><div class="spinner"></div></div>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Sale ID</th>
+          <th>Customer</th>
+          <th>Date</th>
+          <th class="right">Items</th>
+          <th class="right">Total</th>
+          <th>Payment</th>
+          <th>By</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (s of pagedSales(); track s.id) {
+          <tr>
+            <td class="mono muted">#{{ s.id }}</td>
+            <td>
+              <div class="bold">{{ s.customerName || 'Walk-in Customer' }}</div>
+              @if (s.customerEmail) {
+                <div class="sub-text">{{ s.customerEmail }}</div>
+              }
+            </td>
+            <td class="muted">{{ s.saleDate }}</td>
+            <td class="right mono">{{ s.items.length }}</td>
+            <td class="right mono bold accent">₹{{ formatCurrency(s.totalAmount) }}</td>
+            <td><span class="badge {{ s.paymentStatus || 'PENDING' }}">{{ s.paymentStatus || 'PENDING' }}</span></td>
+            <td class="muted">{{ s.createdBy }}</td>
+            <td>
+              <div class="actions">
+                <button class="btn-view" (click)="viewDetail(s)">View Receipt</button>
+                @if (canRemoveSale()) {
+                  <button class="btn-delete" (click)="deleteSale(s)">Remove</button>
+                }
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="8">
+            <div class="empty">
+              <h3>No Sales Yet</h3>
+              <p>Click "New Sale" to record your first transaction.</p>
+            </div>
+          </td></tr>
+        }
+      </tbody>
+    </table>
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button (click)="setPage(page()-1)" [disabled]="page()===1">‹</button>
+        @for (p of pagesArray(totalPages()); track p) {
+          <button (click)="setPage(p)" [class.active]="page()===p">{{ p }}</button>
+        }
+        <button (click)="setPage(page()+1)" [disabled]="page()===totalPages()">›</button>
+      </div>
+    }
+  }
+</div>
+
+<!-- ══════════ NEW SALE MODAL ══════════ -->
+@if (showNew()) {
+  <div class="overlay" (click)="closeNew()">
+    <div class="sale-modal" (click)="$event.stopPropagation()">
+      <div class="modal-head">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          New Sale
+        </h3>
+        <button type="button" (click)="closeNew()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        @if (errorMsg()) {
+          <div class="error-msg">{{ errorMsg() }}</div>
+        }
+
+        <div class="sale-sections">
+
+          <!-- Customer Info -->
+          <div>
+            <div class="section-title">Customer Info</div>
+            <div class="row-2">
+              <div class="field">
+                <label>Customer Name</label>
+                <input type="text" [(ngModel)]="customerName" placeholder="Walk-in Customer" />
+              </div>
+              <div class="field">
+                <label>Customer Email</label>
+                <input type="email" [(ngModel)]="customerEmail" placeholder="customer@email.com" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Sale Details -->
+          <div>
+            <div class="section-title">Sale Details</div>
+            <div class="row-2">
+              <div class="field">
+                <label>Sale Date *</label>
+                <input type="date" [(ngModel)]="saleDate" [max]="todayStr()" />
+              </div>
+              <div class="field">
+                <label>Payment Status</label>
+                <select [(ngModel)]="paymentStatus">
+                  <option value="PENDING">Pending</option>
+                  <option value="APPROVED">Approved</option>
+                  <option value="FAILED">Failed</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Products -->
+          <div>
+            <div class="section-title">Products *</div>
+            <div class="product-search-wrap">
+              <input type="text" [(ngModel)]="productSearch" placeholder="🔍 Search products by name or SKU..."
+                     (input)="onProductSearch()" (focus)="onProductSearch()" (blur)="hideDropdown()" />
+              @if (showDropdown && filteredProducts().length > 0) {
+                <div class="prod-dropdown">
+                  @for (p of filteredProducts().slice(0,12); track p.id) {
+                    <div class="prod-option" (mousedown)="addToCart(p)">
+                      <div>
+                        <div class="prod-name">{{ p.name }}</div>
+                        <div class="prod-meta">{{ p.sku }} · ₹{{ p.price | number:'1.2-2' }}</div>
+                      </div>
+                      <span class="prod-stock">{{ p.currentStock }} left</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Cart -->
+            @if (cart().length === 0) {
+              <div class="cart-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28" style="margin-bottom:8px;opacity:.4"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                <div>Search and add products to cart</div>
+              </div>
+            } @else {
+              <table class="cart-table">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th class="right">Unit Price (₹)</th>
+                    <th class="right">Qty</th>
+                    <th class="right">Subtotal</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of cart(); track item.product.id) {
+                    <tr>
+                      <td>
+                        <div class="cart-name">{{ item.product.name }}</div>
+                        <div class="cart-sku">{{ item.product.sku }}</div>
+                      </td>
+                      <td class="right">
+                        <input class="cart-input" type="number" [ngModel]="item.unitPrice"
+                               (ngModelChange)="updatePrice(item.product.id, $event)" min="0" step="0.01" />
+                      </td>
+                      <td class="right">
+                        <input class="cart-input" type="number" [ngModel]="item.quantity"
+                               (ngModelChange)="updateQty(item.product.id, $event)"
+                               min="1" [max]="item.product.currentStock" />
+                      </td>
+                      <td class="right mono bold">₹{{ (item.quantity * item.unitPrice) | number:'1.2-2' }}</td>
+                      <td><button class="btn-remove" (click)="removeFromCart(item.product.id)" title="Remove">✕</button></td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+              <div class="cart-summary">
+                <span class="cart-items-count">{{ cartItemCount() }} item{{ cartItemCount() !== 1 ? 's' : '' }}</span>
+                <div class="cart-total">Total: <span>₹{{ formatCurrency(cartTotal()) }}</span></div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-foot">
+        <button class="btn-cancel" (click)="closeNew()">Cancel</button>
+        <button class="btn-save" (click)="submitSale()" [disabled]="saving()">
+          @if (saving()) { <span class="spin"></span> }
+          @if (!saving()) {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+          }
+          {{ saving() ? 'Processing…' : 'Confirm Sale' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ══════════ RECEIPT / DETAIL MODAL ══════════ -->
+@if (selected()) {
+  <div class="overlay" (click)="closeDetail()">
+    <div class="receipt-modal" (click)="$event.stopPropagation()">
+      <div class="receipt-head">
+        <div class="receipt-logo">
+          <div class="logo-mark">IN</div>
+          <div>
+            <h3>Inventra</h3>
+            <p>Sale Receipt</p>
+          </div>
+        </div>
+        <hr class="receipt-divider" />
+      </div>
+
+      <div class="receipt-meta">
+        <dl class="meta-item"><dt>Sale ID</dt><dd>#{{ selected()!.id }}</dd></dl>
+        <dl class="meta-item"><dt>Date</dt><dd>{{ selected()!.saleDate }}</dd></dl>
+        <dl class="meta-item"><dt>Customer</dt><dd>{{ selected()!.customerName || 'Walk-in Customer' }}</dd></dl>
+        <dl class="meta-item"><dt>Payment</dt>
+          <dd><span class="badge {{ selected()!.paymentStatus || 'PENDING' }}">{{ selected()!.paymentStatus || 'PENDING' }}</span></dd>
+        </dl>
+        @if (selected()!.customerEmail) {
+          <dl class="meta-item"><dt>Email</dt><dd>{{ selected()!.customerEmail }}</dd></dl>
+        }
+        <dl class="meta-item"><dt>Recorded By</dt><dd>{{ selected()!.createdBy }}</dd></dl>
+      </div>
+
+      <hr class="receipt-divider" style="margin:0 24px;" />
+
+      <div class="receipt-items">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th class="right">Qty</th>
+              <th class="right">Unit Price</th>
+              <th class="right">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of selected()!.items; track item.productId) {
+              <tr>
+                <td>{{ item.productName }}</td>
+                <td class="right">{{ item.quantity }}</td>
+                <td class="right">₹{{ item.unitPrice | number:'1.2-2' }}</td>
+                <td class="right bold">₹{{ (item.quantity * item.unitPrice) | number:'1.2-2' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="receipt-total">
+        <span>Total Amount</span>
+        <span>₹{{ formatCurrency(selected()!.totalAmount) }}</span>
+      </div>
+
+      <div class="receipt-foot">
+        @if (canRemoveSale()) {
+          <div class="payment-btns">
+            <span style="font-size:12px;color:var(--text-muted);">Update payment:</span>
+            @for (status of ['PENDING','APPROVED','FAILED']; track status) {
+              <button class="payment-btn" [class.active]="selected()!.paymentStatus === status"
+                      (click)="updatePayment(selected()!, status)">{{ status }}</button>
+            }
+          </div>
+        }
+        <div style="display:flex;gap:8px;margin-left:auto;">
+          @if (canRemoveSale()) {
+            <button class="btn-delete-sale" (click)="deleteSale(selected()!)">Remove Sale</button>
+          }
+          <button class="btn-close-receipt" (click)="closeDetail()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,303 @@
+<header class="topbar">
+  <span class="greeting">{{ greeting() }}, {{ firstName() }}</span>
+
+  <div class="right">
+    <span class="clock">{{ clock() }}</span>
+    <span class="role-chip" [class]="role()">{{ role() }}</span>
+
+    <!-- Notifications bell -->
+    <div class="dropdown-wrap">
+      <button class="notif-btn" title="Notifications" (click)="toggleNotifications()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        @if (totalUnread() > 0) {
+          <span class="badge">{{ totalUnread() }}</span>
+        }
+      </button>
+      @if (showNotifications()) {
+        <div class="dropdown panel notifications">
+          <div class="panel-head">
+            <strong>Notifications</strong>
+            <button type="button" (click)="markAllRead()">Mark all read</button>
+          </div>
+          @for (n of notifications(); track n.id) {
+            <div class="notice po-notice" (click)="goToPurchaseOrders()">
+              <div class="notice-row">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="flex-shrink:0"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                <p>{{ n.message }}</p>
+              </div>
+              <div class="notice-foot">
+                <span class="notice-time">{{ n.createdAt | slice:0:16 }}</span>
+                <button class="mark-read" (click)="markNotifRead(n.id, $event)">✓</button>
+              </div>
+            </div>
+          }
+          @if (!isSupplier()) {
+            @for (alert of alerts(); track alert.id) {
+              <div class="notice alert-notice">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="flex-shrink:0;color:#f59e0b"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <p>{{ alert.message }}</p>
+              </div>
+            }
+          }
+          @if (notifications().length === 0 && alerts().length === 0) {
+            <div class="empty-notif">No unread notifications.</div>
+          }
+          @if (!isSupplier()) {
+            <a class="view-all" routerLink="/alerts" (click)="showNotifications.set(false)">View all stock alerts →</a>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Dark/Light toggle — SVG icons only -->
+    <button class="theme-toggle" (click)="toggleTheme()" [title]="themeSvc.isDark() ? 'Switch to Light' : 'Switch to Dark'">
+      @if (themeSvc.isDark()) {
+        <!-- Sun icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+      } @else {
+        <!-- Moon icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      }
+    </button>
+
+    <!-- Profile dropdown -->
+    <div class="dropdown-wrap">
+      <button class="user-block" type="button" (click)="toggleProfile()">
+        <div class="avatar">{{ initials() }}</div>
+        <div class="user-text">
+          <span class="name">{{ auth.userName() }}</span>
+          <span class="role-sub">{{ role() }}</span>
+        </div>
+      </button>
+      @if (showProfile()) {
+        <div class="dropdown panel profile-panel">
+          <!-- Gradient Header -->
+          <div class="profile-panel-head">
+            <div class="profile-header-row">
+              <div class="profile-avatar-xl">{{ initials() }}</div>
+              <div class="profile-panel-info">
+                <strong>{{ auth.currentUser()?.name }}</strong>
+                <span class="profile-email">{{ auth.currentUser()?.email }}</span>
+              </div>
+            </div>
+            <div class="profile-status-row">
+              <span class="status-dot"></span>
+              <span class="status-label">Active</span>
+              <span class="role-chip-badge">{{ role() }}</span>
+            </div>
+          </div>
+
+          <!-- Stats row -->
+          <div class="profile-stats">
+            <div class="pstat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9a16 16 0 0 0 6.29 6.29l.61-.61a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <span class="pstat-val">{{ auth.currentUser()?.phone || 'No phone' }}</span>
+            </div>
+            <div class="pstat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+              <span class="pstat-val">{{ auth.currentUser()?.department || 'No dept.' }}</span>
+            </div>
+          </div>
+
+          <!-- Action list -->
+          <div class="profile-action-list">
+            <button type="button" (click)="openEditProfile()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Edit Profile
+            </button>
+            <button type="button" (click)="openPwdModal()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Change Password
+            </button>
+            <button type="button" [routerLink]="['/settings']" (click)="showProfile.set(false)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              Settings
+            </button>
+            <button type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              Notifications
+            </button>
+            <button type="button" class="danger" (click)="logout()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Sign Out
+            </button>
+          </div>
+
+          <!-- Footer -->
+          <div class="profile-footer">
+            <span class="last-login">Last login: {{ lastLoginDisplay() }}</span>
+            <span class="verified-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"><polyline points="20 6 9 17 4 12"/></svg>
+              Verified
+            </span>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</header>
+
+<!-- Edit Profile Modal -->
+@if (showEditProfile()) {
+  <div class="pwd-overlay" (click)="closeEditProfile()">
+    <div class="pwd-modal profile-modal" (click)="$event.stopPropagation()">
+      <div class="pwd-head">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Edit Profile
+        </h3>
+        <button type="button" class="close-x" (click)="closeEditProfile()">✕</button>
+      </div>
+      <div class="pwd-body">
+        @if (profileError()) { <div class="pwd-error">{{ profileError() }}</div> }
+        @if (profileSuccess()) { <div class="pwd-ok">{{ profileSuccess() }}</div> }
+
+        <div class="profile-modal-header">
+          <div class="profile-avatar-modal">{{ initials() }}</div>
+          <div class="profile-modal-info">
+            <strong>{{ auth.currentUser()?.email }}</strong>
+            <span class="role-badge">{{ role() }}</span>
+            <span class="joined-note">Member since your first login</span>
+          </div>
+        </div>
+
+        <div class="profile-form-grid">
+          <div class="profile-form-field">
+            <label class="pwd-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Full Name *
+            </label>
+            <input class="pwd-input" type="text" [(ngModel)]="editName" placeholder="Your full name" />
+          </div>
+          <div class="profile-form-field">
+            <label class="pwd-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9a16 16 0 0 0 6.29 6.29l.61-.61a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              Phone Number
+            </label>
+            <input class="pwd-input" type="tel" [(ngModel)]="editPhone" placeholder="+91 98765 43210" />
+          </div>
+          <div class="profile-form-field full">
+            <label class="pwd-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Address
+            </label>
+            <textarea class="pwd-input pwd-textarea" [(ngModel)]="editAddress" placeholder="Street, City, State, PIN" rows="2"></textarea>
+          </div>
+          <div class="profile-form-field full">
+            <label class="pwd-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+              Department
+            </label>
+            <input class="pwd-input" type="text" [(ngModel)]="editDepartment" placeholder="e.g. IT, Finance, Operations" />
+          </div>
+        </div>
+
+        <div class="profile-modal-footer">
+          <button class="pwd-btn" type="button" (click)="submitProfile()" [disabled]="profileLoading()">
+            @if (profileLoading()) { <span class="spin-sm"></span> Saving… } @else { ✓ Save Changes }
+          </button>
+          <button class="btn-deactivate" type="button" (click)="confirmDeleteAccount()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+            Delete Account
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Delete Account Confirm Modal -->
+@if (showDeleteConfirm()) {
+  <div class="pwd-overlay" (click)="showDeleteConfirm.set(false)">
+    <div class="pwd-modal delete-modal" (click)="$event.stopPropagation()">
+      <div class="pwd-head">
+        <h3 style="color:#ef4444">⚠ Delete Account</h3>
+        <button type="button" (click)="showDeleteConfirm.set(false)">✕</button>
+      </div>
+      <div class="pwd-body">
+        <p style="color:var(--text-secondary);margin-bottom:14px;font-size:13px;">
+          This will deactivate your account. An administrator will need to reactivate it. This action cannot be undone without admin approval.
+        </p>
+        <p style="font-size:13px;color:var(--text-primary);margin-bottom:12px;">Type <strong>DELETE</strong> to confirm:</p>
+        <input class="pwd-input" type="text" [(ngModel)]="deleteConfirmText" placeholder="Type DELETE" />
+        @if (deleteError()) { <div class="pwd-error">{{ deleteError() }}</div> }
+      </div>
+      <div class="pwd-foot">
+        <button class="btn-cancel" (click)="showDeleteConfirm.set(false)">Cancel</button>
+        <button class="btn-delete-account" (click)="submitDeleteAccount()" [disabled]="deleteConfirmText !== 'DELETE'">
+          Confirm Delete
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Change Password Modal -->
+@if (showPwdModal()) {
+  <div class="pwd-overlay" (click)="closePwdModal()">
+    <div class="pwd-modal" (click)="$event.stopPropagation()">
+      <div class="pwd-head">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Change Password
+        </h3>
+        <button type="button" (click)="closePwdModal()">✕</button>
+      </div>
+      <div class="pwd-body">
+        @if (pwdError()) { <div class="error-msg">{{ pwdError() }}</div> }
+        @if (pwdSuccess()) { <div class="success-msg">{{ pwdSuccess() }}</div> }
+        <div class="field">
+          <label>Current Password *</label>
+          <div class="pwd-wrap">
+            <input [type]="showCurrent ? 'text' : 'password'" [(ngModel)]="currentPwd" placeholder="Enter current password" />
+            <button class="eye-btn" type="button" (click)="showCurrent = !showCurrent">
+              @if (showCurrent) {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              }
+            </button>
+          </div>
+        </div>
+        <div class="field">
+          <label>New Password * <span class="hint">(min 6 characters)</span></label>
+          <div class="pwd-wrap">
+            <input [type]="showNew ? 'text' : 'password'" [(ngModel)]="newPwd" placeholder="Enter new password" />
+            <button class="eye-btn" type="button" (click)="showNew = !showNew">
+              @if (showNew) {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              }
+            </button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Confirm New Password *</label>
+          <input type="password" [(ngModel)]="confirmPwd" placeholder="Repeat new password" (keyup.enter)="submitPwd()" />
+          @if (confirmPwd && newPwd !== confirmPwd) {
+            <span class="match-err">Passwords don't match</span>
+          }
+        </div>
+      </div>
+      <div class="pwd-foot">
+        <button class="btn-cancel" (click)="closePwdModal()">Cancel</button>
+        <button class="btn-save" (click)="submitPwd()" [disabled]="pwdLoading()">
+          @if (pwdLoading()) { <span class="spin-sm"></span> }
+          {{ pwdLoading() ? 'Saving…' : 'Change Password' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

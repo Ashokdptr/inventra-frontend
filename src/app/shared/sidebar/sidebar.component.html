@@ -1,0 +1,90 @@
+<aside class="sidebar" [class.collapsed]="collapsed()">
+
+  <!-- Brand -->
+  <div class="brand">
+    <div class="brand-logo">
+      <svg viewBox="0 0 24 24" fill="none" width="16" height="16">
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="white" stroke-width="2" fill="rgba(255,255,255,0.15)"/>
+      </svg>
+    </div>
+    @if (!collapsed()) {
+      <div class="brand-text">
+        <span class="brand-name">Inventra</span>
+        <span class="brand-sub">Intelligent IMS</span>
+      </div>
+    }
+    <button class="chevron-btn" type="button" (click)="toggleCollapsed()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12">
+        @if (collapsed()) { <polyline points="9 18 15 12 9 6"/> }
+        @else              { <polyline points="15 18 9 12 15 6"/> }
+      </svg>
+    </button>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="nav" role="navigation">
+    @for (group of visibleGroups(); track group.heading) {
+      @if (!collapsed()) {
+        <div class="group-label">{{ group.heading }}</div>
+      }
+      @for (item of group.items; track item.label) {
+        <a class="nav-link"
+           [routerLink]="item.route"
+           routerLinkActive="active"
+           [routerLinkActiveOptions]="{ exact: item.end ?? false }"
+           [title]="collapsed() ? item.label : ''">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                 width="17" height="17" [innerHTML]="trustIcon(item.icon)"></svg>
+          </span>
+          @if (!collapsed()) {
+            <span class="nav-label">{{ item.label }}</span>
+            <span class="nav-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </span>
+          }
+        </a>
+      }
+    }
+  </nav>
+
+  <div class="nav-bottom">
+    <a class="nav-link" routerLink="/settings" routerLinkActive="active" [title]="collapsed() ? 'Settings' : ''">
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="17" height="17">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </span>
+      @if (!collapsed()) {
+        <span class="nav-label">Settings</span>
+        <span class="nav-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="9 18 15 12 9 6"/></svg>
+        </span>
+      }
+    </a>
+  </div>
+
+  <!-- User footer -->
+  <div class="user-footer">
+    <div class="user-card" [title]="auth.userName() + ' — ' + auth.userRole()">
+      <div class="user-av" [style.background]="roleColor()">{{ initials() }}</div>
+      @if (!collapsed()) {
+        <div class="user-meta">
+          <span class="user-name">{{ auth.userName() }}</span>
+          <span class="user-role">{{ auth.userRole() }}</span>
+        </div>
+        <button class="logout-icon" (click)="logout()" title="Sign out">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </button>
+      }
+    </div>
+  </div>
+
+</aside>

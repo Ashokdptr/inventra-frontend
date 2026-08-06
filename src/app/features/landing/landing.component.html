@@ -1,0 +1,464 @@
+<div class="lp">
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="nav-logo" routerLink="/landing">
+        <div class="logo-cube">
+          <span>IN</span>
+        </div>
+        <span class="logo-name">Inventra</span>
+        <span class="logo-tag">Pro</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#roles">Access Levels</a></li>
+        <li><a href="#workflow">How It Works</a></li>
+        <li><a href="#invoice">Invoicing</a></li>
+      </ul>
+      <div class="nav-actions">
+        <button class="btn-theme" (click)="theme.toggle()" [title]="theme.isDark() ? 'Light mode' : 'Dark mode'">
+          @if (theme.isDark()) {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          }
+        </button>
+        <a routerLink="/auth/login" class="btn-outline">Sign In</a>
+        <a routerLink="/auth/register" class="btn-solid">Get Started Free</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg">
+      <div class="hero-grid" style="animation: gridPan 25s linear infinite;"></div>
+      <div class="hero-glow g1"></div>
+      <div class="hero-glow g2"></div>
+    </div>
+    <div class="hero-inner">
+      <div class="hero-left">
+        <div class="hero-eyebrow">
+          <span class="dot-live"></span>
+          Enterprise Inventory Intelligence
+        </div>
+        <h1 class="hero-h1">
+          The operating system<br>
+          for your <span class="text-teal">inventory</span><br>
+          <span class="text-outline">business</span>
+        </h1>
+        <p class="hero-sub">
+          Inventra connects every corner of your supply chain — from supplier warehouse to customer invoice — in one intelligent platform with role-based access, AI insights, and real-time stock visibility.
+        </p>
+        <div class="hero-btns">
+          <a routerLink="/auth/login" class="cta-main">
+            Open Dashboard
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+          <a routerLink="/auth/register" class="cta-sec">Request Access</a>
+        </div>
+        <div class="hero-trust">
+          <div class="trust-item">
+            <strong>4</strong><span>Role types</span>
+          </div>
+          <div class="trust-sep"></div>
+          <div class="trust-item">
+            <strong>Real-time</strong><span>Stock alerts</span>
+          </div>
+          <div class="trust-sep"></div>
+          <div class="trust-item">
+            <strong>AI-powered</strong><span>Insights</span>
+          </div>
+          <div class="trust-sep"></div>
+          <div class="trust-item">
+            <strong>Invoice</strong><span>PDF generation</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- HERO DASHBOARD MOCKUP -->
+      <div class="hero-right">
+        <div class="mockup-shell">
+          <div class="mockup-bar">
+            <div class="mock-dots"><span></span><span></span><span></span></div>
+            <div class="mock-url">inventra.app/dashboard</div>
+            <div class="mock-icons">
+              <span></span><span></span>
+            </div>
+          </div>
+          <div class="mockup-body">
+            <!-- Sidebar strip -->
+            <div class="mock-sidebar">
+              <div class="mock-brand">IN</div>
+              <div class="mock-nav-icons">
+                <div class="mni active"></div>
+                <div class="mni"></div>
+                <div class="mni"></div>
+                <div class="mni"></div>
+                <div class="mni"></div>
+                <div class="mni"></div>
+              </div>
+            </div>
+            <!-- Main content -->
+            <div class="mock-main">
+              <div class="mock-topbar">
+                <span class="mock-greeting">Good morning, Abhishek</span>
+                <div class="mock-top-right">
+                  <div class="mock-clock">11:33 AM</div>
+                  <div class="mock-role">ADMIN</div>
+                  <div class="mock-bell"></div>
+                  <div class="mock-avatar">AA</div>
+                </div>
+              </div>
+              <!-- KPI row -->
+              <div class="mock-kpi-row">
+                <div class="mock-kpi teal">
+                  <div class="mk-label">INVENTORY VALUE</div>
+                  <div class="mk-val">₹40.2L</div>
+                  <div class="mk-sub up">↑ 12%</div>
+                </div>
+                <div class="mock-kpi blue">
+                  <div class="mk-label">MONTHLY SALES</div>
+                  <div class="mk-val">₹1.8L</div>
+                  <div class="mk-sub up">↑ 8 orders</div>
+                </div>
+                <div class="mock-kpi warn">
+                  <div class="mk-label">LOW STOCK</div>
+                  <div class="mk-val">23</div>
+                  <div class="mk-sub warn">5 critical</div>
+                </div>
+                <div class="mock-kpi purple">
+                  <div class="mk-label">PENDING POs</div>
+                  <div class="mk-val">12</div>
+                  <div class="mk-sub">Awaiting</div>
+                </div>
+              </div>
+              <!-- Mini table -->
+              <div class="mock-table-card">
+                <div class="mock-table-head">
+                  <span>Recent Stock Alerts</span>
+                  <span class="live-badge">● LIVE</span>
+                </div>
+                <div class="mock-table-rows">
+                  <div class="mtr">
+                    <span class="mtr-dot red"></span>
+                    <span class="mtr-name">HP LaserJet Pro M404dn</span>
+                    <span class="mtr-badge crit">Critical</span>
+                  </div>
+                  <div class="mtr">
+                    <span class="mtr-dot red"></span>
+                    <span class="mtr-name">Cisco SG350-28 Switch</span>
+                    <span class="mtr-badge crit">Critical</span>
+                  </div>
+                  <div class="mtr">
+                    <span class="mtr-dot amber"></span>
+                    <span class="mtr-name">TP-Link Archer AX73</span>
+                    <span class="mtr-badge low">Low</span>
+                  </div>
+                  <div class="mtr">
+                    <span class="mtr-dot green"></span>
+                    <span class="mtr-name">Dell Latitude 5540</span>
+                    <span class="mtr-badge ok">In Stock</span>
+                  </div>
+                </div>
+              </div>
+              <!-- AI chatbot fab -->
+              <div class="mock-fab">🤖 Inventra AI</div>
+            </div>
+          </div>
+        </div>
+        <!-- floating chips -->
+        <div class="float-chip f1">📦 23 items low stock</div>
+        <div class="float-chip f2">✅ PO #47 approved by supplier</div>
+        <div class="float-chip f3">🧾 Invoice INV-20260603 generated</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- METRICS STRIP -->
+  <div class="metrics-strip">
+    <div class="ms-inner">
+      <div class="ms-item">
+        <strong>₹40L+</strong>
+        <span>Inventory tracked</span>
+      </div>
+      <div class="ms-div"></div>
+      <div class="ms-item">
+        <strong>5 modules</strong>
+        <span>Fully integrated</span>
+      </div>
+      <div class="ms-div"></div>
+      <div class="ms-item">
+        <strong>4 roles</strong>
+        <span>Admin · Manager · Staff · Supplier</span>
+      </div>
+      <div class="ms-div"></div>
+      <div class="ms-item">
+        <strong>AI chatbot</strong>
+        <span>Context-aware assistant</span>
+      </div>
+      <div class="ms-div"></div>
+      <div class="ms-item">
+        <strong>PDF invoices</strong>
+        <span>Print-ready in one click</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section class="section features-section" id="features">
+    <div class="section-inner">
+      <div class="sec-eyebrow">Platform Capabilities</div>
+      <h2 class="sec-h2">Built for every layer of inventory management</h2>
+      <p class="sec-sub">From first stock entry to final invoice — every workflow is covered.</p>
+
+      <div class="features-bento">
+        <div class="bento-card b-wide teal-card">
+          <div class="bento-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M5 8h14M5 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8m-9 4h4"/></svg>
+          </div>
+          <h3>Real-time Inventory Tracking</h3>
+          <p>Every stock movement — purchase, sale, adjustment — updates instantly across the system. Low-stock and out-of-stock alerts fire automatically at your defined reorder levels.</p>
+          <div class="bento-visual">
+            <div class="mini-bar-chart">
+              <div class="mbc-bar" style="height:60%;background:#00bcd4"></div>
+              <div class="mbc-bar" style="height:85%;background:#00bcd4"></div>
+              <div class="mbc-bar" style="height:40%;background:#f59e0b"></div>
+              <div class="mbc-bar" style="height:95%;background:#00bcd4"></div>
+              <div class="mbc-bar" style="height:20%;background:#ef4444"></div>
+              <div class="mbc-bar" style="height:70%;background:#00bcd4"></div>
+              <div class="mbc-bar" style="height:55%;background:#00bcd4"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bento-card blue-card">
+          <div class="bento-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <h3>Purchase Order Workflow</h3>
+          <p>Admin creates PO with auto-filled cost prices → Supplier gets notified → Supplier approves from their warehouse → Admin confirms receipt → Inventory updates.</p>
+        </div>
+
+        <div class="bento-card purple-card">
+          <div class="bento-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><circle cx="18" cy="6" r="3" fill="#818cf8"/></svg>
+          </div>
+          <h3>AI-Powered Insights</h3>
+          <p>Inventra AI chatbot answers live queries about stock, sales, and alerts. Ask "show low stock", "dashboard summary", or type commands to add products.</p>
+        </div>
+
+        <div class="bento-card orange-card">
+          <div class="bento-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <h3>Point of Sale</h3>
+          <p>Fast product search, real-time cart totals, payment status tracking, and automatic inventory deduction on every completed sale.</p>
+        </div>
+
+        <div class="bento-card green-card">
+          <div class="bento-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          </div>
+          <h3>Role-Based Access Control</h3>
+          <p>Each user type sees only what they need. Admins get full control, Managers handle operations, Staff record sales, Suppliers manage warehouse stock.</p>
+        </div>
+
+        <div class="bento-card b-wide pink-card" id="invoice">
+          <div class="bento-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="9" y1="17" x2="9" y2="17"/><polyline points="9 17 11 17 16 17"/></svg>
+          </div>
+          <h3>Invoice Generation & PDF Print</h3>
+          <p>Generate professional invoices from any sale in one click. Set tax rate, add notes, view itemized breakdown. Print or save as PDF instantly — complete with Inventra branding, invoice number, and status tracking (Draft → Issued → Paid).</p>
+          <div class="invoice-mini-preview">
+            <div class="imp-head">
+              <div class="imp-brand">IN <strong>Inventra</strong></div>
+              <div class="imp-title">INVOICE</div>
+            </div>
+            <div class="imp-line"></div>
+            <div class="imp-rows">
+              <div class="imp-row"><span>Dell Latitude 5540 × 2</span><span>₹1,60,000</span></div>
+              <div class="imp-row"><span>HP Monitor × 3</span><span>₹45,000</span></div>
+              <div class="imp-row imp-total"><span>Total (GST 18%)</span><span>₹2,41,300</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROLES -->
+  <section class="section roles-section" id="roles">
+    <div class="section-inner">
+      <div class="sec-eyebrow">Who uses Inventra?</div>
+      <h2 class="sec-h2">Four roles. One system.</h2>
+      <div class="roles-grid">
+        <div class="role-card rc-admin">
+          <div class="rc-top">
+            <div class="rc-badge">ADMIN</div>
+            <div class="rc-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+          </div>
+          <h3>System Administrator</h3>
+          <p>Full control over every module</p>
+          <ul>
+            <li>Manage users &amp; assign roles</li>
+            <li>Approve/reject registrations</li>
+            <li>Create &amp; complete purchase orders</li>
+            <li>Generate &amp; print invoices</li>
+            <li>View all reports &amp; AI insights</li>
+            <li>Change any user's password</li>
+          </ul>
+          <a routerLink="/auth/login" class="rc-cta">Admin Login →</a>
+        </div>
+
+        <div class="role-card rc-manager">
+          <div class="rc-top">
+            <div class="rc-badge">MANAGER</div>
+            <div class="rc-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+          </div>
+          <h3>Operations Manager</h3>
+          <p>Day-to-day operational control</p>
+          <ul>
+            <li>Manage products &amp; inventory</li>
+            <li>Adjust stock levels</li>
+            <li>Create purchase orders</li>
+            <li>Record sales &amp; view reports</li>
+            <li>Monitor reorder alerts</li>
+          </ul>
+          <a routerLink="/auth/register" class="rc-cta">Register →</a>
+        </div>
+
+        <div class="role-card rc-staff">
+          <div class="rc-top">
+            <div class="rc-badge">STAFF</div>
+            <div class="rc-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            </div>
+          </div>
+          <h3>Sales Staff</h3>
+          <p>Front-line sales operations</p>
+          <ul>
+            <li>Record new sales transactions</li>
+            <li>View inventory availability</li>
+            <li>Generate customer invoices</li>
+            <li>Check low-stock &amp; reorder alerts</li>
+            <li>Use AI assistant</li>
+          </ul>
+          <a routerLink="/auth/register" class="rc-cta">Register as Staff →</a>
+        </div>
+
+        <div class="role-card rc-supplier">
+          <div class="rc-top">
+            <div class="rc-badge">SUPPLIER</div>
+            <div class="rc-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </div>
+          </div>
+          <h3>Product Supplier</h3>
+          <p>Warehouse &amp; supply management</p>
+          <ul>
+            <li>Browse products by category</li>
+            <li>Set warehouse stock &amp; cost price</li>
+            <li>Receive PO notifications</li>
+            <li>Approve or reject purchase orders</li>
+            <li>View purchase history dashboard</li>
+          </ul>
+          <a routerLink="/auth/register" class="rc-cta">Register as Supplier →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WORKFLOW TIMELINE -->
+  <section class="section workflow-section" id="workflow">
+    <div class="section-inner">
+      <div class="sec-eyebrow">Purchase Order Lifecycle</div>
+      <h2 class="sec-h2">From stock alert to inventory update</h2>
+      <div class="timeline">
+        <div class="tl-line"></div>
+        <div class="tl-step">
+          <div class="tl-dot teal-dot">1</div>
+          <div class="tl-card">
+            <div class="tlc-icon teal-bg">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </div>
+            <h4>Stock Alert Fires</h4>
+            <p>System detects stock below reorder level. Admin &amp; Manager get an alert notification.</p>
+          </div>
+        </div>
+        <div class="tl-step">
+          <div class="tl-dot blue-dot">2</div>
+          <div class="tl-card">
+            <div class="tlc-icon blue-bg">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <h4>Admin Creates PO</h4>
+            <p>Select supplier, add products. Cost price auto-fills from product data. Live order total shown.</p>
+          </div>
+        </div>
+        <div class="tl-step">
+          <div class="tl-dot orange-dot">3</div>
+          <div class="tl-card">
+            <div class="tlc-icon orange-bg">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/></svg>
+            </div>
+            <h4>Supplier Gets Notified</h4>
+            <p>Bell notification appears in supplier's dashboard. They can adjust quantities, approve or reject.</p>
+          </div>
+        </div>
+        <div class="tl-step">
+          <div class="tl-dot purple-dot">4</div>
+          <div class="tl-card">
+            <div class="tlc-icon purple-bg">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            </div>
+            <h4>Supplier Approves</h4>
+            <p>Supplier confirms they have the stock. Admin receives notification that order is ready.</p>
+          </div>
+        </div>
+        <div class="tl-step">
+          <div class="tl-dot green-dot">5</div>
+          <div class="tl-card">
+            <div class="tlc-icon green-bg">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><polyline points="16 21 12 17 8 21"/><polyline points="16 3 12 7 8 3"/></svg>
+            </div>
+            <h4>Admin Confirms Receipt</h4>
+            <p>Mark payment as PAID, click "Confirm Receipt". Products are automatically added to inventory stock.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="cta-bg">
+      <div class="cta-glow"></div>
+    </div>
+    <div class="cta-inner">
+      <div class="cta-eyebrow">Get Started Today</div>
+      <h2>Take control of your inventory</h2>
+      <p>Register as Staff or Supplier. Your account is reviewed and activated by an administrator — typically within one business day.</p>
+      <div class="cta-btns">
+        <a routerLink="/auth/register" class="cta-main">Create Account</a>
+        <a routerLink="/auth/login" class="cta-sec">Sign In →</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="logo-cube sm"><span>IN</span></div>
+        <span>Inventra</span>
+      </div>
+      <span>© 2026 Inventra · Intelligent Inventory Management Platform</span>
+    </div>
+  </footer>
+
+</div>

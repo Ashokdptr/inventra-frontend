@@ -1,0 +1,250 @@
+<!-- ── Page Header ─────────────────────────────────────────────── -->
+<div class="page-header">
+  <div class="page-title">
+    <h1>Transaction History</h1>
+    <p>Complete audit trail of all system activity — Admin only</p>
+  </div>
+  <div class="header-actions">
+    @if (stats()) {
+      <div class="live-badge">
+        <span class="live-dot"></span>
+        {{ stats()!.today }} events today
+      </div>
+    }
+  </div>
+</div>
+
+<!-- ── Stats Strip ──────────────────────────────────────────────── -->
+@if (stats()) {
+  <div class="stats-strip">
+    <div class="stat-card accent-teal">
+      <div class="stat-icon">📋</div>
+      <div class="stat-body">
+        <div class="stat-val">{{ stats()!.total | number }}</div>
+        <div class="stat-lbl">Total Events</div>
+      </div>
+    </div>
+    <div class="stat-card accent-blue">
+      <div class="stat-icon">📅</div>
+      <div class="stat-body">
+        <div class="stat-val">{{ stats()!.today | number }}</div>
+        <div class="stat-lbl">Today</div>
+      </div>
+    </div>
+    <div class="stat-card accent-purple">
+      <div class="stat-icon">📆</div>
+      <div class="stat-body">
+        <div class="stat-val">{{ stats()!.thisWeek | number }}</div>
+        <div class="stat-lbl">This Week</div>
+      </div>
+    </div>
+    <!-- Module bar chart -->
+    <div class="module-bars-card">
+      <div class="module-bars-title">Activity by Module</div>
+      <div class="module-bars">
+        @for (item of topModules(); track item.module) {
+          <div class="mod-bar-row">
+            <span class="mod-label">{{ moduleIcon(item.module) }} {{ moduleLabel(item.module) }}</span>
+            <div class="mod-bar-track">
+              <div class="mod-bar-fill" [style.width.%]="(item.count / maxModuleCount()) * 100"></div>
+            </div>
+            <span class="mod-count">{{ item.count }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ── Filters ──────────────────────────────────────────────────── -->
+<div class="filter-card">
+  <div class="filter-row">
+    <div class="filter-field">
+      <label>Module</label>
+      <select [(ngModel)]="module" (change)="applyFilters()">
+        <option value="">All Modules</option>
+        @for (m of modules; track m) {
+          <option [value]="m">{{ moduleIcon(m) }} {{ moduleLabel(m) }}</option>
+        }
+      </select>
+    </div>
+    <div class="filter-field">
+      <label>Severity</label>
+      <select [(ngModel)]="severity" (change)="applyFilters()">
+        <option value="">All Severities</option>
+        @for (s of severities; track s) {
+          <option [value]="s">{{ s }}</option>
+        }
+      </select>
+    </div>
+    <div class="filter-field grow">
+      <label>Search</label>
+      <input type="text" [(ngModel)]="keyword" placeholder="Search by description or user…"
+             (keyup.enter)="applyFilters()" />
+    </div>
+    <div class="filter-field">
+      <label>From Date</label>
+      <input type="date" [(ngModel)]="fromDate" (change)="applyFilters()" />
+    </div>
+    <div class="filter-field">
+      <label>To Date</label>
+      <input type="date" [(ngModel)]="toDate" (change)="applyFilters()" />
+    </div>
+    <div class="filter-btns">
+      <button class="btn-search" (click)="applyFilters()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Search
+      </button>
+      <button class="btn-clear" (click)="clearFilters()">Clear</button>
+    </div>
+  </div>
+  @if (total() > 0) {
+    <div class="results-info">Showing {{ logs().length }} of {{ total() | number }} events</div>
+  }
+</div>
+
+<!-- ── Logs Table ───────────────────────────────────────────────── -->
+<div class="table-card">
+  @if (loading()) {
+    <div class="loader"><div class="spinner"></div></div>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Module</th>
+          <th>Action</th>
+          <th>Description</th>
+          <th>Performed By</th>
+          <th>Role</th>
+          <th>Extra Info</th>
+          <th>Severity</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (log of logs(); track log.id) {
+          <tr [class]="'row-' + log.severity.toLowerCase()">
+            <td class="td-time">
+              <div>{{ log.createdAt | date:'dd MMM yyyy' }}</div>
+              <div class="sub-time">{{ log.createdAt | date:'HH:mm:ss' }}</div>
+            </td>
+            <td>
+              <span class="module-chip mod-{{ moduleCssClass(log.module) }}">
+                {{ moduleIcon(log.module) }} {{ moduleLabel(log.module) }}
+              </span>
+            </td>
+            <td>
+              <span class="action-chip {{ actionClass(log.action) }}">{{ log.action }}</span>
+            </td>
+            <td class="td-desc">{{ log.description }}</td>
+            <td class="td-user">
+              <div>{{ log.performedBy ?? '—' }}</div>
+              @if (log.ipAddress) { <div class="sub-time">{{ log.ipAddress }}</div> }
+            </td>
+            <td><span class="role-pill">{{ log.userRole ?? '—' }}</span></td>
+            <td class="td-extra">{{ log.extraInfo ?? '—' }}</td>
+            <td>
+              <span class="sev-badge {{ severityClass(log.severity) }}">{{ log.severity }}</span>
+            </td>
+            <td>
+              <button class="btn-detail" (click)="openDetail(log)">Details</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="9">
+            <div class="empty-state">
+              <div class="empty-icon">📋</div>
+              <h3>No transactions found</h3>
+              <p>Try adjusting your filters or date range.</p>
+            </div>
+          </td></tr>
+        }
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    @if (pages() > 1) {
+      <div class="pagination">
+        <button class="pg-btn" (click)="goPage(0)" [disabled]="page()===0">«</button>
+        <button class="pg-btn" (click)="goPage(page()-1)" [disabled]="page()===0">‹</button>
+        @for (p of pagesArray(); track p) {
+          @if (p >= page()-2 && p <= page()+2) {
+            <button class="pg-btn" [class.active]="page()===p" (click)="goPage(p)">{{ p+1 }}</button>
+          }
+        }
+        <button class="pg-btn" (click)="goPage(page()+1)" [disabled]="page()>=pages()-1">›</button>
+        <button class="pg-btn" (click)="goPage(pages()-1)" [disabled]="page()>=pages()-1">»</button>
+        <span class="pg-info">Page {{ page()+1 }} of {{ pages() }}</span>
+      </div>
+    }
+  }
+</div>
+
+<!-- ── Detail Modal ─────────────────────────────────────────────── -->
+@if (selected()) {
+  <div class="overlay" (click)="closeDetail()">
+    <div class="detail-modal" (click)="$event.stopPropagation()">
+      <div class="detail-head">
+        <div class="detail-head-left">
+          <span class="module-chip mod-{{ moduleCssClass(selected()!.module) }}">
+            {{ moduleIcon(selected()!.module) }} {{ moduleLabel(selected()!.module) }}
+          </span>
+          <span class="action-chip {{ actionClass(selected()!.action) }}">{{ selected()!.action }}</span>
+        </div>
+        <button class="close-btn" (click)="closeDetail()">✕</button>
+      </div>
+
+      <div class="detail-body">
+        <div class="detail-grid">
+          <div class="detail-item full">
+            <dt>Description</dt>
+            <dd>{{ selected()!.description }}</dd>
+          </div>
+          <div class="detail-item">
+            <dt>Date &amp; Time</dt>
+            <dd>{{ selected()!.createdAt | date:'dd MMM yyyy, HH:mm:ss' }}</dd>
+          </div>
+          <div class="detail-item">
+            <dt>Performed By</dt>
+            <dd>{{ selected()!.performedBy ?? '—' }}</dd>
+          </div>
+          <div class="detail-item">
+            <dt>User Role</dt>
+            <dd><span class="role-pill">{{ selected()!.userRole ?? '—' }}</span></dd>
+          </div>
+          <div class="detail-item">
+            <dt>Severity</dt>
+            <dd><span class="sev-badge {{ severityClass(selected()!.severity) }}">{{ selected()!.severity }}</span></dd>
+          </div>
+          @if (selected()!.entityId) {
+            <div class="detail-item">
+              <dt>Related Record ID</dt>
+              <dd>#{{ selected()!.entityId }}</dd>
+            </div>
+          }
+          @if (selected()!.extraInfo) {
+            <div class="detail-item">
+              <dt>Additional Info</dt>
+              <dd>{{ selected()!.extraInfo }}</dd>
+            </div>
+          }
+          @if (selected()!.ipAddress) {
+            <div class="detail-item">
+              <dt>IP Address</dt>
+              <dd>{{ selected()!.ipAddress }}</dd>
+            </div>
+          }
+          <div class="detail-item">
+            <dt>Event ID</dt>
+            <dd class="muted">#{{ selected()!.id }}</dd>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-foot">
+        <button class="btn-close-modal" (click)="closeDetail()">Close</button>
+      </div>
+    </div>
+  </div>
+}
