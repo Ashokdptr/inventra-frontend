@@ -1,4 +1,10 @@
 {
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development"
+  },
   "devDependencies": {
     "@angular-devkit/build-angular": "17.3.2",
     "@angular/cli": "17.3.2",
