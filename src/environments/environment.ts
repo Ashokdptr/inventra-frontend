@@ -1,4 +1,4 @@
 export const environment = {
-  production: false,
-  apiUrl: 'http://localhost:8081/api/v1'
+  production: true,
+  apiUrl: 'https://inventra-backend-production-9a8f.up.railway.app/api/v1'
 };
